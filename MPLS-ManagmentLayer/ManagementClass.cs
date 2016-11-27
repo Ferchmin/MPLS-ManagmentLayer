@@ -22,6 +22,7 @@ namespace MPLS_ManagmentLayer
          * - LogFilePath, ścieżka do pliku z logami
          * - logID, identyfikator logów
         */
+
         public string LogFilePath { get; private set; }
         private int logID;
 
@@ -77,12 +78,22 @@ namespace MPLS_ManagmentLayer
         */
         public void MakeLog(int logType, string[] parameters)
         {
-            string logString = null;
-            //dodajemy czas wystapienia
+
+            string logDescription = "";
 
             //wyrażenie switch(logType) i w każdym definiujemy specjalne logi
+            switch (logType)
+            {
+                case 0:
+                    logDescription = "log typu 0";
+                    break;
+                default:
+                    break;
 
-            UpdateLogFile(logString);
+            }
+
+            UpdateLogFile(logDescription);
+            UpdateLogConsole(logDescription);
         }
 
 
@@ -94,9 +105,16 @@ namespace MPLS_ManagmentLayer
          * 
          * - jeżeli wystąpi bład w otwarciu, to może będziemy robić zapasowy plik awaryjny? do ustalenia
         */
-        public void UpdateLogFile(string logString)
+        public void UpdateLogFile(string logDescription)
         {
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter("ManagementLayerLogs.txt", true))
+                file.WriteLine(logID + " " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription);
             logID++;
+        }
+
+        public void UpdateLogConsole(string logDescription)
+        {
+            Console.WriteLine(logID + " " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription);
         }
     }
 }

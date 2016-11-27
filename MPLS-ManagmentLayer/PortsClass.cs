@@ -18,93 +18,136 @@ namespace MPLS_ManagmentLayer
 {
     class PortsClass
     {
-        /*
-         * Lokalne zmienne
-         * - CloudSocket, socket odpowiedzialny za cały ruch we/wy
-         * - LocalEndPoint, punkt końcowy (numer IP centrum zarządzania oraz numer portu, na którym będzie komunikacja)
-         * - configurationBase, wskaźnik na obiekt przechowujący dane pobrane z pliku konfig.
-         * - AcctiveNetworkElements, lista aktywnych elementów sieciowych (tutaj węzłów sieciowych zgłaszających swoja obecność)
-         */
-        private Socket CloudSocket { get; set; }
-        private IPEndPoint LocalEndPoint { get; set; }
-        private ConfigurationClass configurationBase;
-        public List<int> AcctiveNetworkElements { get; set; }
+        Socket mySocket;
+        IPEndPoint myIpEndPoint;
+
+        IPEndPoint cloudIPEndPoint;
+        EndPoint cloudEndPoint;
+        IPEndPoint receivedIPEndPoint;
+
+        byte[] buffer;
+        byte[] packet;
+
+        IPAddress myIpAddress;
+        int myPort;
+
+        IPAddress cloudIpAddress;
+        int cloudPort;
 
 
         /*
-         * Konstruktor klasy
-         * - tworzy nasłuchujący wątek
-         * - próba nawiązania połaczenia?
-        */
-        public PortsClass(ConfigurationClass configurationBase)
+		* Konstruktor - wymaga podania zmiennych pobranych z pliku konfiguracyjnego
+		*/
+        public PortsClass(IPAddress myIpAddress, int myPort, IPAddress cloudIpAddress, int cloudPort)
         {
-            this.configurationBase = configurationBase;
+            InitializeData(myIpAddress, myPort, cloudIpAddress, cloudPort);
+            InitializeSocket();
+        }
+
+        /*
+		* Metoda odpowiedzialna za przypisanie danych do lokalnych zmiennych.
+		*/
+        private void InitializeData(IPAddress myIpAddress, int myPort, IPAddress cloudIpAddress, int cloudPort)
+        {
+            this.myIpAddress = myIpAddress;
+            this.myPort = myPort;
+            this.cloudIpAddress = cloudIpAddress;
+            this.cloudPort = cloudPort;
+        }
+
+        /*
+		* Metoda odpowiedzialna za inicjalizację nasłuchiwania na przychodzące wiadomośći.
+		*/
+        private void InitializeSocket()
+        {
+            //tworzymy gniazdo i przypisujemy mu numer portu i IP zgodne z plikiem konfig
+            mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            myIpEndPoint = new IPEndPoint(myIpAddress, myPort);
+
+
+            //tworzymy punkt końcowy chmury kablowej
+            cloudIPEndPoint = new IPEndPoint(cloudIpAddress, cloudPort);
+            cloudEndPoint = (EndPoint)cloudIPEndPoint;
+
+            //laczymy sockety
+            mySocket.Bind(cloudIPEndPoint);
+
+
+            //tworzymy bufor nasłuchujący
+            buffer = new byte[1024];
+
+            //inicjalizacja nasłuchiwania
+            mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref cloudEndPoint, new AsyncCallback(ReceivedPacket), null);
+        }
+
+        /*
+		* Metoda odpowiedzialna za ukończenie odbierania pakietu.
+		* - tutaj generowany będzie log z wydarzenia;
+		* - tutaj przesyłamy otryzmany pakiet do wewnętrznej metody odpowiedzialnej za przetwarzanie
+		*/
+        public void ReceivedPacket(IAsyncResult res)
+        {
+            //kończymy odbieranie pakietu - metoda zwraca rozmiar faktycznie otrzymanych danych
+            int size = mySocket.EndReceiveFrom(res, ref cloudEndPoint);
+
+            //tworzę tablicę bajtów składającą się jedynie z danych otrzymanych (otrzymany pakiet)
+            byte[] receivedPacket = new byte[size];
+            Array.Copy(buffer, receivedPacket, receivedPacket.Length);
+
+            //tworzę tymczasoyw punkt końcowy zawierający informacje o nadawcy (jego ip oraz nr portu)
+            //tutaj niby zawsze będzie to z chmury kablowej więc cloudIPEndPoint powinien być tym samym co receivedIPEndPoint
+            //tutaj można będzie zrobić sprawdzenie bo cloud to teoria a received to praktyka skąd przyszły dane
+            receivedIPEndPoint = (IPEndPoint)cloudEndPoint;
+
+            //generujemy logi
+            Console.WriteLine("Otrzymaliśmy pakiet od: " + receivedIPEndPoint.Address + " port " + receivedIPEndPoint.Port);
+            Console.WriteLine("Pakieto to: " + Encoding.UTF8.GetString(receivedPacket));
+
+            //przesyłam pakiet do metody przetwarzającej
+            ProcessReceivedPacket(receivedPacket);
+
+            //zeruje bufor odbierający
+            buffer = new byte[1024];
+
+            //uruchamiam ponowne nasłuchiwanie
+            mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref cloudEndPoint, new AsyncCallback(ReceivedPacket), null);
+        }
+
+        /*
+		* Metoda odpowiedzialna za ukończenie wysyłania pakietu.
+		* - tutaj generowany będzie log z wydarzenia;
+		*/
+        public void SendPacket(IAsyncResult res)
+        {
+            //kończymy wysyłanie pakietu - funkcja zwraca rozmiar wysłanego pakietu
+            int size = mySocket.EndSendTo(res);
+
+            //tworzmy log zdarzenia
+            Console.WriteLine("Wysłaliśmy pakiet do: " + receivedIPEndPoint.Address + " port " + receivedIPEndPoint.Port);
+            Console.WriteLine("Pakieto to: " + Encoding.UTF8.GetString(packet));
+        }
+
+        /*
+		* Metoda odpowiedzialna za przetwarzanie odebranego pakietu.
+		*/
+        private void ProcessReceivedPacket(byte[] receivedPacket)
+        {
+            //w celach testowych przypisuje ten sam pakiet co przyszedł do wysłania
+            packet = receivedPacket;
         }
 
 
         /*
-         * Metoda odpowiedzilna za stworzenie oddzielnego wątku, zajmującego się nasłuchiwaniem
-         * 
-        */
-        private void MakeListeningThread()
+		* Metoda odpowiedzialna za inicjalizowanie wysyłania własnego pakietu przez węzeł kliencki.
+		* - metoda publiczna, wywoływana przez inne klasy w celu nadania wiadomosćil;
+		*/
+        public void SendMyPacket(byte[] myPacket)
         {
+            //przypisujemy pakiet do zmiennej lokalnej
+            packet = myPacket;
 
+            //inicjuje start wysyłania przetworzonego pakietu do nadawcy
+            mySocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, cloudIPEndPoint, new AsyncCallback(SendPacket), null);
         }
-
-        /*
-         * Metoda odpowiedzilna za dynamiczne tworzenie tablicy aktywnych węzłów sieci
-         * - jeżeli węzeł wyśle wiadomość o treści "UP", wtedy powinniśmy go dołączyć do listy aktywnych węzłów sieci
-         * - jeżeli otrzymamy inną wiadomośc, powinien wygenerować się log, z treścią otrzymanej wiadomości
-         * - na podstawie otrzymanego zgłoszenia dodaje ID węzła do listy
-         * 
-         * - metoda będzie wywoływana z poziomu metody wątku nasłuchującego (prawdopodobnie musi być to metoda statyczna czyli funckja)
-        */
-        private void AddNetworkElement()
-        {
-            
-        }
-
-        /*
-         * Metoda odpowiedzialna za przetwarzanie wiadomości typu Keep Alive
-         * - trzeba przemyśleć sprawę jak tym zarządzać
-         * - może trzeba oddzielną listę zrobic czy coś,
-         * - trzeba w jakiś sposób sprawić, że jeżeli nie otrzymamy np 2 czy 3 keep alive to powinnien pojawić się alert
-         * węzeł może być niedostepny - wtedy to od nas zależy, czy zajmiemy się tym alertem czy zignorujemy go
-         * węzeł nadal będzie w liście dostepnych (może powinna istnieć możliwośc, ręcznego usunięcia go wtedy?)
-         * 
-         * -powinniśmy wysyłać jakąs informacje, ze dostalismy taki a taki keepalive do managementClas, który powinien to jakoś analizować
-         * 
-        */
-        private void KeepAliveProcess()
-        {
-
-        }
-
-        /*
-         * Metoda odpowiedzialna za możliwośc wysyłania dowolnego zapytania do węzła aktywnego (konkretnie do jego agenta zarzadzania)
-         * - 
-        */
-        public void SendRequest(string request)
-        {
-
-        }
-
-        /*
-         * Metoda odpowiedzialna za odbieranie wiadomości (odpowiedzi od agentów zarządzania)
-         * -metoda powinna być wykonywana wtedy, gdy wątek nasłuchujący otrzyma wiadomośc pochodzacą od węzła,
-         * którego id jest zapisane w tablicy aktywnych elementów sieci (wtedy domyśla się, że jest to odpowiedź)
-         * jak odróżnić odpowiedź od keepalive? może tutaj będzie dopiero cały pakiet przerabiany na stringa
-         * i jeżeli tresc pakietu to keepalive to przekieruj do metody odpowiedniej z przetwarzaniem tego typu wiadomosci
-         * 
-         * - metoda za parametr przyjmuję tablicę bajtów, w których zapisana jest treść pochodząca od agenta
-         * (trzeba przerobić to na stringa i w zalezności od treści uruchomić odpowiedni fragment kodu, czy to w tej klasie,
-         * czy to w obiekcie klasy management)
-         */
-        public void GetRespond(byte[] respond)
-        {
-
-        }
-
-
     }
 }

@@ -17,15 +17,25 @@ namespace MPLS_ManagmentLayer
          * - FilePath, ścieżka do pliku konfiguracyjnego
          * - InputString, to co użytkownik wpisze do konsoli - wywołanie metody GetCommand;
         */
-        public string FilePath { get; private set; }
-        public string InputString {
-            set {   GetCommand(value); }   }
+        ManagementClass managementClass;
+        ConfigurationClass configurationBase;
+        PortsClass portsCommunication;
+
+
+        public string filePath { get; private set; }
+        public string inputString
+        {
+            set { GetCommand(value); }
+        }
 
         /*
          * Konstruktor klasy 
         */
         public InteractionClass()
-        { 
+        {
+            managementClass = new ManagementClass();
+            configurationBase = new ConfigurationClass();
+            portsCommunication = new PortsClass(configurationBase.localIP, configurationBase.localPort, configurationBase.cloudIP, configurationBase.cloudPort);
         }
 
 
@@ -55,7 +65,7 @@ namespace MPLS_ManagmentLayer
         */
         public void ShowHelp()
         {
-
+            Console.Write("Availible commands: \n1.delete \n2.add \n3.change\n4.lsr list \nFor detailed help type command name + help (eg. delete help)\n");
         }
 
         /*
@@ -67,6 +77,49 @@ namespace MPLS_ManagmentLayer
         */
         public void GetCommand(string command)
         {
+            command.ToLower();
+            switch (command)
+            {
+                case "delete":
+                    Console.WriteLine("Executing delete command");
+                    managementClass.AnalyseCommand(command);
+                    break;
+                case "add":
+                    Console.WriteLine("Executing add command");
+                    managementClass.AnalyseCommand(command);
+                    break;
+                case "change":
+                    Console.WriteLine("Executing change command");
+                    managementClass.AnalyseCommand(command);
+                    break;
+                case "help":
+                    ShowHelp();
+                    break;
+                case "lsr list":
+                    ShowClientList();
+                    break;
+                default:
+                    Console.WriteLine("Invalid command, try again");
+                    break;
+            }
+        }
+        /* 
+         * Metoda wyswietlajaca liste aktualnie podlaczonych klientow
+         */
+        public void ShowClientList()
+        {
+            //Console.WriteLine("Number of availible clients: " + portsCommunication.activeNetworkElements.Count);
+            //if (portsCommunication.activeNetworkElements.Count == 0)
+            //{
+            //    Console.WriteLine("No clients connected");
+            //}
+            //else
+            //{
+            //    foreach (int client in portsCommunication.activeNetworkElements)
+            //    {
+            //        Console.WriteLine("Client ID: " + portsCommunication.activeNetworkElements.IndexOf(client));
+            //    }
+            //}
 
         }
 
@@ -85,9 +138,23 @@ namespace MPLS_ManagmentLayer
         * - związane z protokołem, np: jak wpiszemy set? wcisniemy enter to dostaniemy z czego składa sie składnia danej komendy
         * plus przykład)
         */
-        public void ShowDetailedHelp()
+        public void ShowDetailedHelp(string command)
         {
-
+            switch (command)
+            {
+                case "add":
+                    Console.WriteLine("Parameters for add are: LSR ID, FIB position, new FIB value.\n For list of LSR's connected type LSR list");
+                    break;
+                case "delete":
+                    Console.WriteLine("Parameters for add are: LSR ID, FIB position, new FIB value.\n For list of LSR's connected type LSR list");
+                    break;
+                case "change":
+                    Console.WriteLine("Parameters for add are: LSR ID, FIB position, new FIB value.\n For list of LSR's connected type LSR list");
+                    break;
+                default:
+                    Console.WriteLine("No help availible. Try asking the authors");
+                    break;
+            }
         }
 
         /*

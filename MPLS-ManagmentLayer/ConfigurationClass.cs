@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,11 +28,15 @@ namespace MPLS_ManagmentLayer
          * - LocalPortNumber - numer portu przypisany do danego urządzenia
          * - LogFilePath - ścieżka do pliku, w którym zapisywane bedą wszystkie zdarzenia (logi)
          */
-        private string CloudIPAdd { get; set; }
-        private int CloudPortNumber { get; set; }
-        private string LocalIPAdd { get; set; }
-        private int LocalPortNumber { get; set; }
-        public string LogFilePath { get; private set; }
+
+        string DEFAULCONFIGPATH = "defaultConfig.txt";
+
+        public IPAddress cloudIP { get; set; }
+        public int cloudPort { get; set; }
+        public IPAddress localIP { get; set; }
+        public int localPort { get; set; }
+        public string logFilePath { get; private set; }
+        public string configFilePath { get; private set; }
 
 
         /*
@@ -41,6 +46,22 @@ namespace MPLS_ManagmentLayer
         public ConfigurationClass()
         {
             //tutaj wywołujemy metode ShowPathRequest oraz pobieramy FilePath metoda get publiczną z obiektu
+            GetConfigPath();
+            OpenFile();
+            PerformConfiguration();
+            CloseFile();
+
+        }
+
+        private void GetConfigPath()
+        {
+            Console.Write("Please type the path for config file (leave empty for default): ");
+            configFilePath = Console.ReadLine();
+            if (configFilePath == "")
+            {
+                Console.WriteLine("Opening default config file");
+                configFilePath = DEFAULCONFIGPATH;
+            }
         }
 
         /*
@@ -48,15 +69,19 @@ namespace MPLS_ManagmentLayer
         */
         private void OpenFile()
         {
-
+            Console.WriteLine("Opening config file: " + configFilePath);
         }
 
         /*
          * Klasa odpowiadająca za odczytanie pliku w odpowiedni sposób
          * - odczytanie i przypisanie wszystkich zmiennych
          */
-        private void ReadFile()
+        private void PerformConfiguration()
         {
+            this.cloudIP = IPAddress.Loopback;
+            this.cloudPort = 102;
+            this.localIP = IPAddress.Loopback;
+            this.localPort = 103;
 
         }
 
@@ -65,7 +90,7 @@ namespace MPLS_ManagmentLayer
         */
         private void CloseFile()
         {
-
+            Console.WriteLine("Closing config file: " + configFilePath);
         }
     }
 }

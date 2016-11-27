@@ -15,28 +15,35 @@ namespace MPLS_ManagmentLayer
 {
     class Program
     {
+
         static void Main(string[] args)
         {
 
+            string inputString;
+            bool run = true;
+
             //tworzymy wszystkie główne obiekty
-            ConfigurationClass configurationBase = new ConfigurationClass();
-            PortsClass portsCommunication = new PortsClass(configurationBase);
+            //ConfigurationClass configurationBase = new ConfigurationClass();
+            //PortsClass portsCommunication = new PortsClass(configurationBase);
             InteractionClass consoleInterface = new InteractionClass();
-            ManagementClass manager = new ManagementClass();
+            //ManagementClass manager = new ManagementClass();
 
-            consoleInterface.ShowPathRequest();
-
-            /*
-             * Zmienna kończy pętle programu
-             * Domyślnie, konsola cały czas czeka na wpisanie przez użytkownika komendy
-             * Jeżeli użytkownik wpisze exit, wtedy nastąpi wyłączenie programu
-            */
-            bool exitCommand = false;
             do
             {
-                consoleInterface.InputString = Console.ReadLine();
+                Console.Write("Enter commands here: ");
+                inputString = Console.ReadLine();
 
-            } while (exitCommand);
+                if (inputString == "exit")
+                {
+                    run = false;
+                }
+                else
+                {
+                    consoleInterface.GetCommand(inputString);
+                }
+
+            } while (run);
+
 
         }
     }
