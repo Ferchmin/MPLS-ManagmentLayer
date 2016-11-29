@@ -23,7 +23,7 @@ namespace MPLS_ManagmentLayer
          * - logID, identyfikator logów
         */
 
-        ConfigurationClass configurationBase;
+        public ConfigurationClass configurationBase;
         PortsClass portsCommunication;
 
         public string LogFilePath { get; private set; }
@@ -55,6 +55,7 @@ namespace MPLS_ManagmentLayer
 
             return true;
         }
+
 
         /*
          * Metoda odpowiedzialna za sprawdzenie (w jakiś sposób), czy danych host jest dostępny czy może należy

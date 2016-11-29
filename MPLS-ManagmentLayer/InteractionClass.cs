@@ -77,15 +77,15 @@ namespace MPLS_ManagmentLayer
             command.ToLower();
             switch (command)
             {
-                case "delete":
+                case "POP":
                     Console.WriteLine("Executing delete command");
                     managementClass.AnalyseCommand(command);
                     break;
-                case "add":
+                case "PUSH":
                     Console.WriteLine("Executing add command");
                     managementClass.AnalyseCommand(command);
                     break;
-                case "change":
+                case "SWAP":
                     Console.WriteLine("Executing change command");
                     managementClass.AnalyseCommand(command);
                     break;

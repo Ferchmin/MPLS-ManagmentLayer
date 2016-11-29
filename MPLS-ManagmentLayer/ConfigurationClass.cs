@@ -55,14 +55,14 @@ namespace MPLS_ManagmentLayer
         {
             //tutaj wywołujemy metode ShowPathRequest oraz pobieramy FilePath metoda get publiczną z obiektu
             GetConfigPath();
-            XmlDocument config = OpenFile();
+            XmlDocument config = OpenXMLFile(DEFAULCONFIGPATH);
             PerformConfiguration(config);
 
         }
 
-        private void GetConfigPath()
+        public void GetConfigPath()
         {
-            Console.Write("Please type the path for config file (leave empty for default): ");
+            Console.Write("Please type the path for config file: ");
             configFilePath = Console.ReadLine();
             if (configFilePath == "")
             {
@@ -74,9 +74,9 @@ namespace MPLS_ManagmentLayer
         /*
         * Klasa odpowiadająca za bezpieczne otwarcię pliku
         */
-        private XmlDocument OpenFile()
+        private XmlDocument OpenXMLFile(string path)
         {
-            XmlTextReader configFile = new XmlTextReader(configFilePath);
+            XmlTextReader configFile = new XmlTextReader(path);
             XmlDocument xDoc = new XmlDocument();
             xDoc.Load(configFile);
 

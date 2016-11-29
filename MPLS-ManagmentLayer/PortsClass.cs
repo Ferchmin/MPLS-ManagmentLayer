@@ -34,6 +34,8 @@ namespace MPLS_ManagmentLayer
         IPAddress cloudIpAddress;
         int cloudPort;
 
+        bool configChanged = false;
+
 
         /*
 		* Konstruktor - wymaga podania zmiennych pobranych z pliku konfiguracyjnego
@@ -77,6 +79,7 @@ namespace MPLS_ManagmentLayer
             //inicjalizacja nasłuchiwania
             mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref cloudEndPoint, new AsyncCallback(ReceivedPacket), null);
         }
+
 
         /*
 		* Metoda odpowiedzialna za ukończenie odbierania pakietu.
