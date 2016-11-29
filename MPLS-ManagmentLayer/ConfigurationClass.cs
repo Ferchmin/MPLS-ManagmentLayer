@@ -4,6 +4,14 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
+
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.IO;
+
 
 /*
  * Klasa odpowiedzialna za wczytywanie pliku konfiguracyjnego
@@ -29,7 +37,7 @@ namespace MPLS_ManagmentLayer
          * - LogFilePath - ścieżka do pliku, w którym zapisywane bedą wszystkie zdarzenia (logi)
          */
 
-        string DEFAULCONFIGPATH = "defaultConfig.txt";
+        string DEFAULCONFIGPATH = "defaultConfig.xml";
 
         public IPAddress cloudIP { get; set; }
         public int cloudPort { get; set; }
@@ -47,9 +55,8 @@ namespace MPLS_ManagmentLayer
         {
             //tutaj wywołujemy metode ShowPathRequest oraz pobieramy FilePath metoda get publiczną z obiektu
             GetConfigPath();
-            OpenFile();
-            PerformConfiguration();
-            CloseFile();
+            XmlDocument config = OpenFile();
+            PerformConfiguration(config);
 
         }
 
@@ -67,30 +74,26 @@ namespace MPLS_ManagmentLayer
         /*
         * Klasa odpowiadająca za bezpieczne otwarcię pliku
         */
-        private void OpenFile()
+        private XmlDocument OpenFile()
         {
-            Console.WriteLine("Opening config file: " + configFilePath);
+            XmlTextReader configFile = new XmlTextReader(configFilePath);
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.Load(configFile);
+
+            return xDoc;
         }
 
         /*
          * Klasa odpowiadająca za odczytanie pliku w odpowiedni sposób
          * - odczytanie i przypisanie wszystkich zmiennych
          */
-        private void PerformConfiguration()
+        private void PerformConfiguration(XmlDocument configFile)
         {
-            this.cloudIP = IPAddress.Loopback;
-            this.cloudPort = 102;
-            this.localIP = IPAddress.Loopback;
-            this.localPort = 103;
-
+            this.cloudIP = IPAddress.Parse(configFile.SelectSingleNode("ManagmentLayer/localIP").InnerText);
+            this.cloudPort = int.Parse(configFile.SelectSingleNode("ManagmentLayer/localPort").InnerText);
+            this.localIP = IPAddress.Parse(configFile.SelectSingleNode("ManagmentLayer/cloudIP").InnerText);
+            this.localPort = int.Parse(configFile.SelectSingleNode("ManagmentLayer/cloudPort").InnerText);
         }
 
-        /*
-        * Klasa odpowiadająca za bezpieczne zamknięcie pliku
-        */
-        private void CloseFile()
-        {
-            Console.WriteLine("Closing config file: " + configFilePath);
-        }
     }
 }

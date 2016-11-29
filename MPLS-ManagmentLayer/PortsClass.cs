@@ -38,10 +38,11 @@ namespace MPLS_ManagmentLayer
         /*
 		* Konstruktor - wymaga podania zmiennych pobranych z pliku konfiguracyjnego
 		*/
-        public PortsClass(IPAddress myIpAddress, int myPort, IPAddress cloudIpAddress, int cloudPort)
+        public PortsClass(ConfigurationClass configurationBase)
         {
-            InitializeData(myIpAddress, myPort, cloudIpAddress, cloudPort);
+            InitializeData(configurationBase.localIP, configurationBase.localPort, configurationBase.cloudIP, configurationBase.cloudPort);
             InitializeSocket();
+            Console.WriteLine("Config Loaded - local IP: " + myIpAddress + " local Port: " + myPort + " cloud IP: "+cloudIpAddress +" cloud Port: " + cloudPort);
         }
 
         /*
@@ -63,15 +64,12 @@ namespace MPLS_ManagmentLayer
             //tworzymy gniazdo i przypisujemy mu numer portu i IP zgodne z plikiem konfig
             mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             myIpEndPoint = new IPEndPoint(myIpAddress, myPort);
+            mySocket.Bind(myIpEndPoint);
 
 
             //tworzymy punkt końcowy chmury kablowej
             cloudIPEndPoint = new IPEndPoint(cloudIpAddress, cloudPort);
             cloudEndPoint = (EndPoint)cloudIPEndPoint;
-
-            //laczymy sockety
-            mySocket.Bind(cloudIPEndPoint);
-
 
             //tworzymy bufor nasłuchujący
             buffer = new byte[1024];
@@ -85,7 +83,7 @@ namespace MPLS_ManagmentLayer
 		* - tutaj generowany będzie log z wydarzenia;
 		* - tutaj przesyłamy otryzmany pakiet do wewnętrznej metody odpowiedzialnej za przetwarzanie
 		*/
-        public void ReceivedPacket(IAsyncResult res)
+        private void ReceivedPacket(IAsyncResult res)
         {
             //kończymy odbieranie pakietu - metoda zwraca rozmiar faktycznie otrzymanych danych
             int size = mySocket.EndReceiveFrom(res, ref cloudEndPoint);
@@ -117,7 +115,7 @@ namespace MPLS_ManagmentLayer
 		* Metoda odpowiedzialna za ukończenie wysyłania pakietu.
 		* - tutaj generowany będzie log z wydarzenia;
 		*/
-        public void SendPacket(IAsyncResult res)
+        private void SendPacket(IAsyncResult res)
         {
             //kończymy wysyłanie pakietu - funkcja zwraca rozmiar wysłanego pakietu
             int size = mySocket.EndSendTo(res);
@@ -125,6 +123,9 @@ namespace MPLS_ManagmentLayer
             //tworzmy log zdarzenia
             Console.WriteLine("Wysłaliśmy pakiet do: " + receivedIPEndPoint.Address + " port " + receivedIPEndPoint.Port);
             Console.WriteLine("Pakieto to: " + Encoding.UTF8.GetString(packet));
+
+
+
         }
 
         /*
@@ -134,6 +135,9 @@ namespace MPLS_ManagmentLayer
         {
             //w celach testowych przypisuje ten sam pakiet co przyszedł do wysłania
             packet = receivedPacket;
+
+
+
         }
 
 

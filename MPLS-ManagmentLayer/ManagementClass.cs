@@ -23,6 +23,9 @@ namespace MPLS_ManagmentLayer
          * - logID, identyfikator logów
         */
 
+        ConfigurationClass configurationBase;
+        PortsClass portsCommunication;
+
         public string LogFilePath { get; private set; }
         private int logID;
 
@@ -33,6 +36,9 @@ namespace MPLS_ManagmentLayer
         */
         public ManagementClass()
         {
+            configurationBase = new ConfigurationClass();
+            portsCommunication = new PortsClass(configurationBase);
+
             logID = 0;
         }
 

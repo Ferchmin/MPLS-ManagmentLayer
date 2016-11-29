@@ -18,8 +18,6 @@ namespace MPLS_ManagmentLayer
          * - InputString, to co użytkownik wpisze do konsoli - wywołanie metody GetCommand;
         */
         ManagementClass managementClass;
-        ConfigurationClass configurationBase;
-        PortsClass portsCommunication;
 
 
         public string filePath { get; private set; }
@@ -34,8 +32,7 @@ namespace MPLS_ManagmentLayer
         public InteractionClass()
         {
             managementClass = new ManagementClass();
-            configurationBase = new ConfigurationClass();
-            portsCommunication = new PortsClass(configurationBase.localIP, configurationBase.localPort, configurationBase.cloudIP, configurationBase.cloudPort);
+      
         }
 
 
