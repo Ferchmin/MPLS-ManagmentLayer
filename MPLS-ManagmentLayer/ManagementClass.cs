@@ -52,10 +52,34 @@ namespace MPLS_ManagmentLayer
         */
         public bool AnalyseCommand(string command)
         {
-
             return true;
         }
 
+        public void AddCommand()
+        {
+            Console.WriteLine("Type destination IP: ");
+            string destinationIP = Console.ReadLine();
+
+            Console.WriteLine("Set line: ");
+            int tableLine = Int32.Parse(Console.ReadLine());
+
+            Console.WriteLine("State the IN port: ");
+            int inPort = Int32.Parse(Console.ReadLine());
+
+            Console.WriteLine("State the OUT port: ");
+            int outPort = Int32.Parse(Console.ReadLine());
+
+            string packetMessage = "ADD " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString();
+
+            ManagementPacket commandPacket = new ManagementPacket();
+            commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+            commandPacket.IpDestination = destinationIP;
+            commandPacket.DataIdentifier = 2;
+            commandPacket.Data = packetMessage;
+            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+
+            portsCommunication.SendMyPacket(commandPacket.CreatePacket());
+        }
 
         /*
          * Metoda odpowiedzialna za sprawdzenie (w jakiś sposób), czy danych host jest dostępny czy może należy

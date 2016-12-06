@@ -34,8 +34,14 @@ namespace MPLS_ManagmentLayer
         IPAddress cloudIpAddress;
         int cloudPort;
 
-        bool configChanged = false;
+        private List<LSRouter> connectedRouters = new List<LSRouter>();
+        private ManagementPacket managmentPacket = new ManagementPacket();
 
+        public IPAddress MyIPAddress
+        {
+            get { return myIpAddress; }
+            set { myIpAddress = value; }
+        }
 
         /*
 		* Konstruktor - wymaga podania zmiennych pobranych z pliku konfiguracyjnego
@@ -95,6 +101,8 @@ namespace MPLS_ManagmentLayer
             byte[] receivedPacket = new byte[size];
             Array.Copy(buffer, receivedPacket, receivedPacket.Length);
 
+
+
             //tworzę tymczasoyw punkt końcowy zawierający informacje o nadawcy (jego ip oraz nr portu)
             //tutaj niby zawsze będzie to z chmury kablowej więc cloudIPEndPoint powinien być tym samym co receivedIPEndPoint
             //tutaj można będzie zrobić sprawdzenie bo cloud to teoria a received to praktyka skąd przyszły dane
@@ -127,22 +135,66 @@ namespace MPLS_ManagmentLayer
             Console.WriteLine("Wysłaliśmy pakiet do: " + receivedIPEndPoint.Address + " port " + receivedIPEndPoint.Port);
             Console.WriteLine("Pakieto to: " + Encoding.UTF8.GetString(packet));
 
-
-
         }
 
         /*
 		* Metoda odpowiedzialna za przetwarzanie odebranego pakietu.
 		*/
-        private void ProcessReceivedPacket(byte[] receivedPacket)
+        private void ProcessReceivedPacket(byte[] receivedPacketBytes)
         {
             //w celach testowych przypisuje ten sam pakiet co przyszedł do wysłania
-            packet = receivedPacket;
+            packet = receivedPacketBytes;
 
+            ManagementPacket receivedPacket = new ManagementPacket(receivedPacketBytes);
+
+            switch (receivedPacket.DataIdentifier)
+            {
+                case 0:
+                    AddConectedRouter(receivedPacket);
+                    break;
+                case 1:
+                    RestartRouterTimer(receivedPacket);
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    GetResponse(receivedPacket);
+                    break;
+                default:
+                    break;
+            }
 
 
         }
 
+        private void GetResponse(ManagementPacket packet)
+        {
+
+            //Make a log
+            Console.WriteLine("Response from: " + packet.IpSource + " : " + packet.Data);
+        }
+
+        private void RestartRouterTimer(ManagementPacket packet) 
+        {
+            foreach (LSRouter router in connectedRouters)
+            {
+                if (router.IpAddress == packet.IpSource)
+                {
+                    router.keepAliveTimer.Stop();
+                    //Nie musze uruchamiac stopera poniewaz parametr AutoReset jest ustawiony na true
+                    //router.keepAliveTimer.Start();
+                }
+            }
+            
+            
+
+        }
+
+        private void AddConectedRouter(ManagementPacket packet)
+        {
+            LSRouter router = new LSRouter(packet.IpSource);
+            connectedRouters.Add(router);
+        }
 
         /*
 		* Metoda odpowiedzialna za inicjalizowanie wysyłania własnego pakietu przez węzeł kliencki.

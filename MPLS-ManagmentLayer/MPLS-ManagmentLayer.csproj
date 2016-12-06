@@ -45,7 +45,10 @@
   <ItemGroup>
     <Compile Include="ConfigurationClass.cs" />
     <Compile Include="InteractionClass.cs" />
+    <Compile Include="LSRouter.cs" />
     <Compile Include="ManagementClass.cs" />
+    <Compile Include="ManagmentPacket.cs" />
+    <Compile Include="PacketStructure.cs" />
     <Compile Include="PortsClass.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

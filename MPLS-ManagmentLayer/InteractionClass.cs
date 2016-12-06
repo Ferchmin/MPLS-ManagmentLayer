@@ -32,6 +32,7 @@ namespace MPLS_ManagmentLayer
         public InteractionClass()
         {
             managementClass = new ManagementClass();
+            ShowHelp();
       
         }
 
@@ -74,25 +75,28 @@ namespace MPLS_ManagmentLayer
         */
         public void GetCommand(string command)
         {
-            command.ToLower();
+            command =  command.ToUpper();
             switch (command)
             {
-                case "POP":
-                    Console.WriteLine("Executing delete command");
-                    managementClass.AnalyseCommand(command);
+                case "ADD":
+                    Console.WriteLine("Executing ADD command");
+                    managementClass.AddCommand();
                     break;
-                case "PUSH":
-                    Console.WriteLine("Executing add command");
+                case "REMOVE":
+                    Console.WriteLine("Executing REMOVE command");
                     managementClass.AnalyseCommand(command);
                     break;
                 case "SWAP":
-                    Console.WriteLine("Executing change command");
+                    Console.WriteLine("Executing swap command");
                     managementClass.AnalyseCommand(command);
                     break;
-                case "help":
+                case "HELP":
                     ShowHelp();
                     break;
-                case "lsr list":
+                case "LSR LIST":
+                    ShowClientList();
+                    break;
+                case "LIST":
                     ShowClientList();
                     break;
                 default:
@@ -100,6 +104,9 @@ namespace MPLS_ManagmentLayer
                     break;
             }
         }
+
+        
+
         /* 
          * Metoda wyswietlajaca liste aktualnie podlaczonych klientow
          */
