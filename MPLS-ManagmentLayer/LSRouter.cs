@@ -31,7 +31,7 @@ namespace MPLS_ManagmentLayer
             this.ipAdress = ipAdress;
             isActive = true;
 
-            System.Timers.Timer keepAliveTimer = new System.Timers.Timer();
+            keepAliveTimer = new System.Timers.Timer();
             keepAliveTimer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimedEvent);
             keepAliveTimer.AutoReset = true;
             keepAliveTimer.Interval = 2700000;

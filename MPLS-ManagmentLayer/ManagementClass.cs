@@ -26,12 +26,6 @@ namespace MPLS_ManagmentLayer
         public ConfigurationClass configurationBase;
         public PortsClass portsCommunication;
 
-        private List<LSRouter> connectedRouters = new List<LSRouter>();
-
-        public List<LSRouter> ConnectedRouters
-        {
-            get { return connectedRouters; }
-        }
 
         public string LogFilePath { get; private set; }
         private int logID;
@@ -114,48 +108,6 @@ namespace MPLS_ManagmentLayer
             portsCommunication.SendMyPacket(commandPacket.CreatePacket());
         }
 
-        public void RestartRouterTimer(ManagementPacket packet)
-        {
-            foreach (LSRouter router in ConnectedRouters)
-            {
-                if (router.IpAddress == packet.IpSource)
-                {
-                    router.keepAliveTimer.Stop();
-                    //Nie musze uruchamiac stopera poniewaz parametr AutoReset jest ustawiony na true
-                    //router.keepAliveTimer.Start();
-                }
-            }
-
-        }
-
-        public void AddConectedRouter(ManagementPacket packet)
-        {
-            bool flag = false;
-            LSRouter lsRouter = new LSRouter(packet.IpSource);
-            foreach (LSRouter router in ConnectedRouters)
-            {
-                if (router.IpAddress == lsRouter.IpAddress)
-                {
-                    flag = true;
-                }
-            }
-
-            if (flag)
-            {
-                RestartRouterTimer(packet);
-            }
-            else
-            {
-                ConnectedRouters.Add(lsRouter);
-            }
-
-        }
-
-        public void GetResponse(ManagementPacket packet)
-        {
-            //Make a log
-            Console.WriteLine("Response from: " + packet.IpSource + " : " + packet.Data);
-        }
 
         /*
          * Metoda odpowiedzialna za sprawdzenie (w jakiś sposób), czy danych host jest dostępny czy może należy

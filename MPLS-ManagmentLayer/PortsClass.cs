@@ -18,8 +18,7 @@ namespace MPLS_ManagmentLayer
 {
     class PortsClass
     {
-        ManagementClass managementClass;
-
+        
         Socket mySocket;
         IPEndPoint myIpEndPoint;
 
@@ -38,6 +37,13 @@ namespace MPLS_ManagmentLayer
 
         private ManagementPacket managmentPacket = new ManagementPacket();
 
+        private List<LSRouter> connectedRouters = new List<LSRouter>();
+
+        public List<LSRouter> ConnectedRouters
+        {
+            get { return connectedRouters; }
+        }
+
         public IPAddress MyIPAddress
         {
             get { return myIpAddress; }
@@ -50,7 +56,6 @@ namespace MPLS_ManagmentLayer
 		*/
         public PortsClass(ConfigurationClass configurationBase)
         {
-            managementClass = new ManagementClass();
             InitializeData(configurationBase.localIP, configurationBase.localPort, configurationBase.cloudIP, configurationBase.cloudPort);
             InitializeSocket();
             Console.WriteLine("Config Loaded - local IP: " + myIpAddress + " local Port: " + myPort + " cloud IP: "+cloudIpAddress +" cloud Port: " + cloudPort);
@@ -153,20 +158,62 @@ namespace MPLS_ManagmentLayer
             switch (receivedPacket.DataIdentifier)
             {
                 case 0:
-                    managementClass.AddConectedRouter(receivedPacket);
+                    AddConectedRouter(receivedPacket);
                     break;
                 case 1:
-                    managementClass.RestartRouterTimer(receivedPacket);
+                    RestartRouterTimer(receivedPacket);
                     break;
                 case 2:
                     break;
                 case 3:
-                    managementClass.GetResponse(receivedPacket);
+                    GetResponse(receivedPacket);
                     break;
                 default:
                     break;
             }
+        }
 
+        private void GetResponse(ManagementPacket packet)
+        {
+            //Make a log
+            Console.WriteLine("Response from: " + packet.IpSource + " : " + packet.Data);
+        }
+
+        private void AddConectedRouter(ManagementPacket packet)
+        {
+            bool flag = false;
+            LSRouter lsRouter = new LSRouter(packet.IpSource);
+            foreach (LSRouter router in ConnectedRouters)
+            {
+                if (router.IpAddress == lsRouter.IpAddress)
+                {
+                    flag = true;
+                }
+            }
+
+            if (flag)
+            {
+                RestartRouterTimer(packet);
+            }
+            else
+            {
+                ConnectedRouters.Add(lsRouter);
+            }
+
+        }
+
+
+        private void RestartRouterTimer(ManagementPacket packet)
+        {
+            foreach (LSRouter router in ConnectedRouters)
+            {
+                if (router.IpAddress == packet.IpSource)
+                {
+                    router.keepAliveTimer.Stop();
+                    //Nie musze uruchamiac stopera poniewaz parametr AutoReset jest ustawiony na true
+                    //router.keepAliveTimer.Start();
+                }
+            }
 
         }
 
