@@ -39,14 +39,10 @@ namespace MPLS_ManagmentLayer
 
         }
 
-        public void disactivate()
-        {
-            isActive = false;
-        }
 
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            Console.WriteLine("umieram");
+            LogMaker.MakeLog("Router deactivated - keepAlive timeout");
             isActive = false;
        
         }

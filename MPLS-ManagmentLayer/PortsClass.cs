@@ -117,8 +117,8 @@ namespace MPLS_ManagmentLayer
             receivedIPEndPoint = (IPEndPoint)cloudEndPoint;
 
             //generujemy logi
-            Console.WriteLine("Otrzymaliśmy pakiet od: " + receivedIPEndPoint.Address + " port " + receivedIPEndPoint.Port);
-            Console.WriteLine("Pakieto to: " + Encoding.UTF8.GetString(receivedPacket));
+
+            LogMaker.MakeLog("Packet received from" + receivedIPEndPoint.Address + " port: "+receivedIPEndPoint.Port);
 
             //przesyłam pakiet do metody przetwarzającej
             ProcessReceivedPacket(receivedPacket);
@@ -140,8 +140,7 @@ namespace MPLS_ManagmentLayer
             int size = mySocket.EndSendTo(res);
 
             //tworzmy log zdarzenia
-            Console.WriteLine("Wysłaliśmy pakiet do: " + receivedIPEndPoint.Address + " port " + receivedIPEndPoint.Port);
-            Console.WriteLine("Pakieto to: " + Encoding.UTF8.GetString(packet));
+            LogMaker.MakeLog("Packet sent to "+receivedIPEndPoint.Address + "port: "+receivedIPEndPoint.Port);
 
         }
 
@@ -176,7 +175,9 @@ namespace MPLS_ManagmentLayer
         private void GetResponse(ManagementPacket packet)
         {
             //Make a log
-            Console.WriteLine("Response from: " + packet.IpSource + " : " + packet.Data);
+
+            LogMaker.MakeLog("Received response from: "+packet.IpSource + " : "+packet.Data);
+
         }
 
         private void AddConectedRouter(ManagementPacket packet)
@@ -198,6 +199,7 @@ namespace MPLS_ManagmentLayer
             else
             {
                 ConnectedRouters.Add(lsRouter);
+                LogMaker.MakeLog("Received IsUp from: " + lsRouter.IpAddress);
             }
 
         }
@@ -210,8 +212,13 @@ namespace MPLS_ManagmentLayer
                 if (router.IpAddress == packet.IpSource)
                 {
                     router.keepAliveTimer.Stop();
+
+                    LogMaker.MakeLog("Received keepAlive from: " + router.IpAddress);
                     //Nie musze uruchamiac stopera poniewaz parametr AutoReset jest ustawiony na true
                     //router.keepAliveTimer.Start();
+                }else
+                {
+                    LogMaker.MakeLog("Received IsUp from unknown router");
                 }
             }
 
@@ -230,5 +237,9 @@ namespace MPLS_ManagmentLayer
             //inicjuje start wysyłania przetworzonego pakietu do nadawcy
             mySocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, cloudIPEndPoint, new AsyncCallback(SendPacket), null);
         }
+
+
+
+
     }
 }

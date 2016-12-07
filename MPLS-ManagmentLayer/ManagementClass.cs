@@ -26,6 +26,8 @@ namespace MPLS_ManagmentLayer
         public ConfigurationClass configurationBase;
         public PortsClass portsCommunication;
 
+        public LogMaker logMaker;
+
 
         public string LogFilePath { get; private set; }
         private int logID;
@@ -39,6 +41,9 @@ namespace MPLS_ManagmentLayer
         {
             configurationBase = new ConfigurationClass();
             portsCommunication = new PortsClass(configurationBase);
+            logMaker = new LogMaker();
+
+            LogMaker.MakeLog("Managment agent is online");
 
             logID = 0;
         }
@@ -80,6 +85,9 @@ namespace MPLS_ManagmentLayer
             commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
 
             portsCommunication.SendMyPacket(commandPacket.CreatePacket());
+
+            LogMaker.MakeLog("Sent ADD command to " + destinationIP);
+
         }
 
         public void SendRemoveCommand()
@@ -106,6 +114,8 @@ namespace MPLS_ManagmentLayer
             commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
 
             portsCommunication.SendMyPacket(commandPacket.CreatePacket());
+
+            LogMaker.MakeLog("Sent REMOVE command to " + destinationIP);
         }
 
 
@@ -119,61 +129,6 @@ namespace MPLS_ManagmentLayer
         public void KeepAliveVeryfication(int id)
         {
 
-        }
-
-
-        /*
-         * Metoda generująca zdarzenie
-         * -trzeba się zastanowić w jakiej formie to tworzyć i kiedy ma być wykonywana ta komenda
-         * - log powinien się składać na pewno z czasu zajścia i jakiś charakterystycznych parametrów
-         * albo wczesniej trzeba zdefiniować listę stringów zawierających wszystkie możliwe logi
-         * (np: zgłoszenie węzła o id takim, węzeł o id takim wyslał keep-alive, wysłanie do agenta o id takim wiadomości takiej,
-         * odebranie od agenta wiadomości takiej a takiej, blad w dostarczeniu komendy (w komunikacji) itp.)
-         * 
-         * -moim zdaniem powinniśmy wysyłać logType i listę parametrów w stringu (może być nullem jak nie mamy nic do dodania,
-         * jednak w wiekszosci logów bedzie trzeba coś wrzucic np id wezła, albo treść wiadomości)
-         * 
-         * - komenda musi sie kończyć zaktualizowaniem pliku, czyli wywoałniem metody UpdateLogFile
-        */
-        public void MakeLog(int logType, string[] parameters)
-        {
-
-            string logDescription = "";
-
-            //wyrażenie switch(logType) i w każdym definiujemy specjalne logi
-            switch (logType)
-            {
-                case 0:
-                    logDescription = "log typu 0";
-                    break;
-                default:
-                    break;
-
-            }
-
-            UpdateLogFile(logDescription);
-            UpdateLogConsole(logDescription);
-        }
-
-
-        /*
-         * Metoda odpowiedzialna za aktualizację pliku ze zdarzeniami
-         * - jeżeli pojawia się w programie nowe zdarzenie, trzeba dopisać je do pliku
-         * - do każdego nowego zdarzenia dodajemy id (globalny licznik większany przy każdym wywołaniu metody)
-         * - jeżeli wystąpi błąd przy otwarciu pliku, powinniśmy to wyświetlić na konsoli głównej metodą ShowLogError 
-         * 
-         * - jeżeli wystąpi bład w otwarciu, to może będziemy robić zapasowy plik awaryjny? do ustalenia
-        */
-        public void UpdateLogFile(string logDescription)
-        {
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter("ManagementLayerLogs.txt", true))
-                file.WriteLine(logID + " " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription);
-            logID++;
-        }
-
-        public void UpdateLogConsole(string logDescription)
-        {
-            Console.WriteLine(logID + " " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription);
         }
     }
 }

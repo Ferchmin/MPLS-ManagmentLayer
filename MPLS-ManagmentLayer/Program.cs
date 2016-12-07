@@ -36,6 +36,7 @@ namespace MPLS_ManagmentLayer
                 if (inputString == "exit")
                 {
                     run = false;
+                    LogMaker.MakeLog("Management agent is offline");
                 }
                 else
                 {

@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationClass.cs" />
+    <Compile Include="LogMaker.cs" />
     <Compile Include="InteractionClass.cs" />
     <Compile Include="LSRouter.cs" />
     <Compile Include="ManagementClass.cs" />
