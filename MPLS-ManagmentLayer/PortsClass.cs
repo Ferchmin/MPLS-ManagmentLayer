@@ -18,6 +18,8 @@ namespace MPLS_ManagmentLayer
 {
     class PortsClass
     {
+        ManagementClass managementClass;
+
         Socket mySocket;
         IPEndPoint myIpEndPoint;
 
@@ -34,7 +36,6 @@ namespace MPLS_ManagmentLayer
         IPAddress cloudIpAddress;
         int cloudPort;
 
-        private List<LSRouter> connectedRouters = new List<LSRouter>();
         private ManagementPacket managmentPacket = new ManagementPacket();
 
         public IPAddress MyIPAddress
@@ -43,11 +44,13 @@ namespace MPLS_ManagmentLayer
             set { myIpAddress = value; }
         }
 
+
         /*
 		* Konstruktor - wymaga podania zmiennych pobranych z pliku konfiguracyjnego
 		*/
         public PortsClass(ConfigurationClass configurationBase)
         {
+            managementClass = new ManagementClass();
             InitializeData(configurationBase.localIP, configurationBase.localPort, configurationBase.cloudIP, configurationBase.cloudPort);
             InitializeSocket();
             Console.WriteLine("Config Loaded - local IP: " + myIpAddress + " local Port: " + myPort + " cloud IP: "+cloudIpAddress +" cloud Port: " + cloudPort);
@@ -150,15 +153,15 @@ namespace MPLS_ManagmentLayer
             switch (receivedPacket.DataIdentifier)
             {
                 case 0:
-                    AddConectedRouter(receivedPacket);
+                    managementClass.AddConectedRouter(receivedPacket);
                     break;
                 case 1:
-                    RestartRouterTimer(receivedPacket);
+                    managementClass.RestartRouterTimer(receivedPacket);
                     break;
                 case 2:
                     break;
                 case 3:
-                    GetResponse(receivedPacket);
+                    managementClass.GetResponse(receivedPacket);
                     break;
                 default:
                     break;
@@ -167,34 +170,6 @@ namespace MPLS_ManagmentLayer
 
         }
 
-        private void GetResponse(ManagementPacket packet)
-        {
-
-            //Make a log
-            Console.WriteLine("Response from: " + packet.IpSource + " : " + packet.Data);
-        }
-
-        private void RestartRouterTimer(ManagementPacket packet) 
-        {
-            foreach (LSRouter router in connectedRouters)
-            {
-                if (router.IpAddress == packet.IpSource)
-                {
-                    router.keepAliveTimer.Stop();
-                    //Nie musze uruchamiac stopera poniewaz parametr AutoReset jest ustawiony na true
-                    //router.keepAliveTimer.Start();
-                }
-            }
-            
-            
-
-        }
-
-        private void AddConectedRouter(ManagementPacket packet)
-        {
-            LSRouter router = new LSRouter(packet.IpSource);
-            connectedRouters.Add(router);
-        }
 
         /*
 		* Metoda odpowiedzialna za inicjalizowanie wysyłania własnego pakietu przez węzeł kliencki.

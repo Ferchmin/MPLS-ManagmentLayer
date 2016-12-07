@@ -21,6 +21,11 @@ namespace MPLS_ManagmentLayer
             set { ipAdress = value; }
         }
 
+        public bool IsActive
+        {
+            get { return isActive; }
+        }
+
         public LSRouter(string ipAdress)
         {
             this.ipAdress = ipAdress;

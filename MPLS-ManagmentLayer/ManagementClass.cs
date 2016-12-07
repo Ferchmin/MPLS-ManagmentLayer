@@ -24,7 +24,14 @@ namespace MPLS_ManagmentLayer
         */
 
         public ConfigurationClass configurationBase;
-        PortsClass portsCommunication;
+        public PortsClass portsCommunication;
+
+        private List<LSRouter> connectedRouters = new List<LSRouter>();
+
+        public List<LSRouter> ConnectedRouters
+        {
+            get { return connectedRouters; }
+        }
 
         public string LogFilePath { get; private set; }
         private int logID;
@@ -55,7 +62,7 @@ namespace MPLS_ManagmentLayer
             return true;
         }
 
-        public void AddCommand()
+        public void SendAddCommand()
         {
             Console.WriteLine("Type destination IP: ");
             string destinationIP = Console.ReadLine();
@@ -79,6 +86,75 @@ namespace MPLS_ManagmentLayer
             commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
 
             portsCommunication.SendMyPacket(commandPacket.CreatePacket());
+        }
+
+        public void SendRemoveCommand()
+        {
+            Console.WriteLine("Type destination IP: ");
+            string destinationIP = Console.ReadLine();
+
+            Console.WriteLine("Set line: ");
+            int tableLine = Int32.Parse(Console.ReadLine());
+
+            Console.WriteLine("State the IN port: ");
+            int inPort = Int32.Parse(Console.ReadLine());
+
+            Console.WriteLine("State the OUT port: ");
+            int outPort = Int32.Parse(Console.ReadLine());
+
+            string packetMessage = "REMOVE " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString();
+
+            ManagementPacket commandPacket = new ManagementPacket();
+            commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+            commandPacket.IpDestination = destinationIP;
+            commandPacket.DataIdentifier = 2;
+            commandPacket.Data = packetMessage;
+            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+
+            portsCommunication.SendMyPacket(commandPacket.CreatePacket());
+        }
+
+        public void RestartRouterTimer(ManagementPacket packet)
+        {
+            foreach (LSRouter router in ConnectedRouters)
+            {
+                if (router.IpAddress == packet.IpSource)
+                {
+                    router.keepAliveTimer.Stop();
+                    //Nie musze uruchamiac stopera poniewaz parametr AutoReset jest ustawiony na true
+                    //router.keepAliveTimer.Start();
+                }
+            }
+
+        }
+
+        public void AddConectedRouter(ManagementPacket packet)
+        {
+            bool flag = false;
+            LSRouter lsRouter = new LSRouter(packet.IpSource);
+            foreach (LSRouter router in ConnectedRouters)
+            {
+                if (router.IpAddress == lsRouter.IpAddress)
+                {
+                    flag = true;
+                }
+            }
+
+            if (flag)
+            {
+                RestartRouterTimer(packet);
+            }
+            else
+            {
+                ConnectedRouters.Add(lsRouter);
+            }
+
+        }
+
+        public void GetResponse(ManagementPacket packet)
+        {
+            //Make a log
+            Console.WriteLine("Response from: " + packet.IpSource + " : " + packet.Data);
         }
 
         /*

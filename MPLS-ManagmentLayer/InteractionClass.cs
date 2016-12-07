@@ -63,7 +63,7 @@ namespace MPLS_ManagmentLayer
         */
         public void ShowHelp()
         {
-            Console.Write("Availible commands: \n1.delete \n2.add \n3.change\n4.lsr list \nFor detailed help type command name + help (eg. delete help)\n");
+            Console.Write("Availible commands: \n1.Add \n2.Remove \n3.lsr list \n4.help \n");
         }
 
         /*
@@ -79,25 +79,39 @@ namespace MPLS_ManagmentLayer
             switch (command)
             {
                 case "ADD":
-                    Console.WriteLine("Executing ADD command");
-                    managementClass.AddCommand();
+                    Console.WriteLine("Executing ADD");
+                    managementClass.SendAddCommand();
+                    break;
+                case "1":
+                    Console.WriteLine("Executing ADD");
+                    managementClass.SendAddCommand();
                     break;
                 case "REMOVE":
                     Console.WriteLine("Executing REMOVE command");
-                    managementClass.AnalyseCommand(command);
+                    managementClass.SendRemoveCommand();
                     break;
-                case "SWAP":
-                    Console.WriteLine("Executing swap command");
-                    managementClass.AnalyseCommand(command);
+                case "2":
+                    Console.WriteLine("Executing REMOVE command");
+                    managementClass.SendRemoveCommand();
                     break;
-                case "HELP":
-                    ShowHelp();
-                    break;
+                //case "SWAP":
+                //  Console.WriteLine("Executing swap command");
+                //  managementClass.AnalyseCommand(command);
+                //  break;
                 case "LSR LIST":
                     ShowClientList();
                     break;
                 case "LIST":
                     ShowClientList();
+                    break;
+                case "3":
+                    ShowClientList();
+                    break;
+                case "HELP":
+                    ShowHelp();
+                    break;
+                case "4":
+                    ShowHelp();
                     break;
                 default:
                     Console.WriteLine("Invalid command, try again");
@@ -112,18 +126,24 @@ namespace MPLS_ManagmentLayer
          */
         public void ShowClientList()
         {
-            //Console.WriteLine("Number of availible clients: " + portsCommunication.activeNetworkElements.Count);
-            //if (portsCommunication.activeNetworkElements.Count == 0)
-            //{
-            //    Console.WriteLine("No clients connected");
-            //}
-            //else
-            //{
-            //    foreach (int client in portsCommunication.activeNetworkElements)
-            //    {
-            //        Console.WriteLine("Client ID: " + portsCommunication.activeNetworkElements.IndexOf(client));
-            //    }
-            //}
+            
+            if (managementClass.portsCommunication.ConnectedRouters.Count == 0)
+            {
+                Console.WriteLine("No clients connected");
+            }
+            else
+            {
+                Console.WriteLine("Number of availible clients: " + managementClass.portsCommunication.ConnectedRouters.Count);
+                int i = 0;
+                foreach (LSRouter client in managementClass.portsCommunication.ConnectedRouters)
+                {
+                    if (client.IsActive)
+                    {
+                        i++;
+                        Console.WriteLine(i + ". " + "IP: " + client.IpAddress);
+                    }
+                }
+            }
 
         }
 
