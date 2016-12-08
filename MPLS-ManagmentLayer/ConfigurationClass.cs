@@ -89,10 +89,9 @@ namespace MPLS_ManagmentLayer
          */
         private void PerformConfiguration(XmlDocument configFile)
         {
-            this.cloudIP = IPAddress.Parse(configFile.SelectSingleNode("ManagmentLayer/localIP").InnerText);
-            this.cloudPort = int.Parse(configFile.SelectSingleNode("ManagmentLayer/localPort").InnerText);
-            this.localIP = IPAddress.Parse(configFile.SelectSingleNode("ManagmentLayer/cloudIP").InnerText);
-            this.localPort = int.Parse(configFile.SelectSingleNode("ManagmentLayer/cloudPort").InnerText);
+            this.localIP = IPAddress.Parse(configFile.SelectSingleNode("ManagmentLayer/localIP").InnerText);
+            this.localPort = int.Parse(configFile.SelectSingleNode("ManagmentLayer/localPort").InnerText);
+           
         }
 
     }

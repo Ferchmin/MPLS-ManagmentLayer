@@ -43,7 +43,7 @@ namespace MPLS_ManagmentLayer
 
             keepAliveTimer = new System.Timers.Timer();
             keepAliveTimer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimedEvent);
-            keepAliveTimer.AutoReset = true;
+            keepAliveTimer.AutoReset = false;
             keepAliveTimer.Interval = 40000;
             keepAliveTimer.Enabled = true;
 
@@ -54,7 +54,8 @@ namespace MPLS_ManagmentLayer
         {
             LogMaker.MakeLog("Router deactivated - keepAlive timeout");
             isActive = false;
-       
+            keepAliveTimer.Stop();
+            keepAliveTimer.Close();
         }
     }
 }

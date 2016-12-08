@@ -107,7 +107,7 @@ namespace MPLS_ManagmentLayer
             IPEndPoint receivedIPEndPoint = (IPEndPoint)agentEndPoint;
 
             //generujemy logi
-            LogMaker.MakeLog("Packet received from" + receivedIPEndPoint.Address + " port: "+receivedIPEndPoint.Port);
+            LogMaker.MakeLog("Packet received from " + receivedIPEndPoint.Address + " port: "+receivedIPEndPoint.Port);
 
             //przesyłam pakiet do metody przetwarzającej
             ProcessReceivedPacket(receivedPacket, receivedIPEndPoint);
@@ -203,13 +203,13 @@ namespace MPLS_ManagmentLayer
                 if (router.IpAddress == packet.IpSource)
                 {
                     router.keepAliveTimer.Stop();
+                    router.keepAliveTimer.Start();
 
                     LogMaker.MakeLog("Received keepAlive from: " + router.IpAddress);
-                    //Nie musze uruchamiac stopera poniewaz parametr AutoReset jest ustawiony na true
-                    //router.keepAliveTimer.Start();
+
                 }else
                 {
-                    LogMaker.MakeLog("Received IsUp from unknown router");
+                    LogMaker.MakeLog("Received keepAlive from unknown router");
                 }
             }
 
