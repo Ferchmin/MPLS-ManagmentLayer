@@ -37,7 +37,7 @@ namespace MPLS_ManagmentLayer
                 _logID++;
             }
 
-            Console.WriteLine("\n" + log + "\n" );
+            //Console.WriteLine("\n" + log + "\n" );
         }
 
 

@@ -73,16 +73,16 @@ namespace MPLS_ManagmentLayer
             else
             {
 
-                Console.WriteLine("Set line: ");
+                Console.WriteLine("Set LabelIn: ");
                 int tableLine = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("State the IN port: ");
+                Console.WriteLine("State the InterfaceIn: ");
                 int inPort = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("State the OUT port: ");
+                Console.WriteLine("State the labelOut: ");
                 int outPort = Int32.Parse(Console.ReadLine());
 
-                string packetMessage = "ADD " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString();
+                string packetMessage = "Add " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString() + " swap";
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
@@ -124,11 +124,12 @@ namespace MPLS_ManagmentLayer
                 }
                 else
                 {
-                    Console.WriteLine("Wrong router selected");
+                    Console.WriteLine("Router is no longer active");
                     return null;
                 }
             
             }
+            Console.WriteLine("Wrong router selected");
             return null;
         }
 
@@ -184,8 +185,8 @@ namespace MPLS_ManagmentLayer
                 {
                     if (client.IsActive)
                     {
-                        i++;
                         Console.WriteLine(i + ". " + "IP: " + client.IpAddress);
+                        i++;
                     }
                 }
                 return i;
