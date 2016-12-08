@@ -85,7 +85,12 @@ namespace MPLS_ManagmentLayer
                 Console.WriteLine("State the InterfaceOut: ");
                 int intOut = Int32.Parse(Console.ReadLine());
 
-                string packetMessage = "Add " + tableLine.ToString() + " " + intIn.ToString() + " " + outPort.ToString() + " " + intOut.ToString()+ " swap";
+                Console.WriteLine("Choose which operation to perform (pop, push or swap): ");
+                string operation = Console.ReadLine();
+
+                operation = operation.ToLower();
+
+                string packetMessage = "Add " + tableLine.ToString() + " " + intIn.ToString() + " " + outPort.ToString() + " " + intOut.ToString()+ " " + operation;
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
