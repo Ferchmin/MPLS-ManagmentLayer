@@ -224,7 +224,7 @@ namespace MPLS_ManagmentLayer
             packet = myPacket;
 
             //inicjuje start wysyłania przetworzonego pakietu do nadawcy
-            mySocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, agentIPEndPoint, new AsyncCallback(SendPacket), null);
+            mySocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, agentIPEndPoint, new AsyncCallback(SendPacket), agentIPEndPoint);
         }
 
 

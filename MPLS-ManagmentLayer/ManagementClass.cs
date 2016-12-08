@@ -147,16 +147,13 @@ namespace MPLS_ManagmentLayer
             else
             {
 
-                Console.WriteLine("Set line: ");
+                          Console.WriteLine("Set LabelIn: ");
                 int tableLine = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("State the IN port: ");
-                int inPort = Int32.Parse(Console.ReadLine());
+                Console.WriteLine("State the InterfaceIn: ");
+                int intIn = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("State the OUT port: ");
-                int outPort = Int32.Parse(Console.ReadLine());
-
-                string packetMessage = "REMOVE " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString();
+                string packetMessage = "REMOVE " + tableLine.ToString() + " " + intIn.ToString();
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
