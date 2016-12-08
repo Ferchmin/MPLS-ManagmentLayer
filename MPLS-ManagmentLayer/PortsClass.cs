@@ -166,9 +166,7 @@ namespace MPLS_ManagmentLayer
         private void GetResponse(ManagementPacket packet)
         {
             //Make a log
-
             LogMaker.MakeLog("Received response from: "+packet.IpSource + " : "+packet.Data);
-
         }
 
         private void AddConectedRouter(ManagementPacket packet, IPEndPoint receivedIPEndPoint)

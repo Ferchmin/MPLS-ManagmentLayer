@@ -77,12 +77,15 @@ namespace MPLS_ManagmentLayer
                 int tableLine = Int32.Parse(Console.ReadLine());
 
                 Console.WriteLine("State the InterfaceIn: ");
-                int inPort = Int32.Parse(Console.ReadLine());
+                int intIn = Int32.Parse(Console.ReadLine());
 
                 Console.WriteLine("State the labelOut: ");
                 int outPort = Int32.Parse(Console.ReadLine());
 
-                string packetMessage = "Add " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString() + " swap";
+                Console.WriteLine("State the InterfaceOut: ");
+                int intOut = Int32.Parse(Console.ReadLine());
+
+                string packetMessage = "Add " + tableLine.ToString() + " " + intIn.ToString() + " " + outPort.ToString() + " " + intOut.ToString()+ " swap";
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
