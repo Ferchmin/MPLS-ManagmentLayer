@@ -11,9 +11,18 @@ namespace MPLS_ManagmentLayer
     class LSRouter
     {
         private string ipAdress;
+
+        private int port;
+
         private bool isActive;
 
         public System.Timers.Timer keepAliveTimer;
+
+        public int Port
+        {
+            get { return port; }
+            set { port = value; }
+        }
 
         public string IpAddress
         {
@@ -26,15 +35,16 @@ namespace MPLS_ManagmentLayer
             get { return isActive; }
         }
 
-        public LSRouter(string ipAdress)
+        public LSRouter(string ipAdress, int port)
         {
             this.ipAdress = ipAdress;
+            this.port = port;
             isActive = true;
 
             keepAliveTimer = new System.Timers.Timer();
             keepAliveTimer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimedEvent);
             keepAliveTimer.AutoReset = true;
-            keepAliveTimer.Interval = 2700000;
+            keepAliveTimer.Interval = 40000;
             keepAliveTimer.Enabled = true;
 
         }

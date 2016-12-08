@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 /*
@@ -63,59 +64,133 @@ namespace MPLS_ManagmentLayer
 
         public void SendAddCommand()
         {
-            Console.WriteLine("Type destination IP: ");
-            string destinationIP = Console.ReadLine();
+            IPEndPoint agentEndPoint = ChooseTargetRouter();
 
-            Console.WriteLine("Set line: ");
-            int tableLine = Int32.Parse(Console.ReadLine());
+            if (agentEndPoint == null)
+            {
+                LogMaker.MakeLog("Failed to send ADD command - wrong router selected or no router availible");
+            }
+            else
+            {
 
-            Console.WriteLine("State the IN port: ");
-            int inPort = Int32.Parse(Console.ReadLine());
+                Console.WriteLine("Set line: ");
+                int tableLine = Int32.Parse(Console.ReadLine());
 
-            Console.WriteLine("State the OUT port: ");
-            int outPort = Int32.Parse(Console.ReadLine());
+                Console.WriteLine("State the IN port: ");
+                int inPort = Int32.Parse(Console.ReadLine());
 
-            string packetMessage = "ADD " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString();
+                Console.WriteLine("State the OUT port: ");
+                int outPort = Int32.Parse(Console.ReadLine());
 
-            ManagementPacket commandPacket = new ManagementPacket();
-            commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
-            commandPacket.IpDestination = destinationIP;
-            commandPacket.DataIdentifier = 2;
-            commandPacket.Data = packetMessage;
-            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+                string packetMessage = "ADD " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString();
 
-            portsCommunication.SendMyPacket(commandPacket.CreatePacket());
+                ManagementPacket commandPacket = new ManagementPacket();
+                commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+                commandPacket.IpDestination = agentEndPoint.Address.ToString();
+                commandPacket.DataIdentifier = 2;
+                commandPacket.Data = packetMessage;
+                commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
 
-            LogMaker.MakeLog("Sent ADD command to " + destinationIP);
 
+                portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
+
+                LogMaker.MakeLog("Sent ADD command to " + agentEndPoint.Address.ToString());
+            }
+        }
+
+        public IPEndPoint ChooseTargetRouter()
+        {
+            int idRange = ShowClientList();
+
+            if(idRange == 0)
+            {
+                return null;
+            }
+
+            IPAddress ipAddress;
+            int port;
+
+            Console.WriteLine("Choose router by typing ID: ");
+            int destinationRouterId = Int32.Parse(Console.ReadLine());
+
+            if(destinationRouterId <= idRange)
+            {
+                if (portsCommunication.ConnectedRouters[destinationRouterId].IsActive)
+                {
+                    ipAddress = IPAddress.Parse(portsCommunication.ConnectedRouters[destinationRouterId].IpAddress);
+                    port = portsCommunication.ConnectedRouters[destinationRouterId].Port;
+                    return new IPEndPoint(ipAddress, port);
+
+                }
+                else
+                {
+                    Console.WriteLine("Wrong router selected");
+                    return null;
+                }
+            
+            }
+            return null;
         }
 
         public void SendRemoveCommand()
         {
-            Console.WriteLine("Type destination IP: ");
-            string destinationIP = Console.ReadLine();
+            IPEndPoint agentEndPoint = ChooseTargetRouter();
 
-            Console.WriteLine("Set line: ");
-            int tableLine = Int32.Parse(Console.ReadLine());
+            if (agentEndPoint == null)
+            {
+                LogMaker.MakeLog("Failed to send REMOVE command - wrong router selected");
+            }
+            else
+            {
 
-            Console.WriteLine("State the IN port: ");
-            int inPort = Int32.Parse(Console.ReadLine());
+                Console.WriteLine("Set line: ");
+                int tableLine = Int32.Parse(Console.ReadLine());
 
-            Console.WriteLine("State the OUT port: ");
-            int outPort = Int32.Parse(Console.ReadLine());
+                Console.WriteLine("State the IN port: ");
+                int inPort = Int32.Parse(Console.ReadLine());
 
-            string packetMessage = "REMOVE " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString();
+                Console.WriteLine("State the OUT port: ");
+                int outPort = Int32.Parse(Console.ReadLine());
 
-            ManagementPacket commandPacket = new ManagementPacket();
-            commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
-            commandPacket.IpDestination = destinationIP;
-            commandPacket.DataIdentifier = 2;
-            commandPacket.Data = packetMessage;
-            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+                string packetMessage = "REMOVE " + tableLine.ToString() + " " + inPort.ToString() + " " + outPort.ToString();
 
-            portsCommunication.SendMyPacket(commandPacket.CreatePacket());
+                ManagementPacket commandPacket = new ManagementPacket();
+                commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+                commandPacket.IpDestination = agentEndPoint.Address.ToString();
+                commandPacket.DataIdentifier = 2;
+                commandPacket.Data = packetMessage;
+                commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
 
-            LogMaker.MakeLog("Sent REMOVE command to " + destinationIP);
+
+                portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
+
+                LogMaker.MakeLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
+            }
+        }
+
+        public int ShowClientList()
+        {
+
+            if (portsCommunication.ConnectedRouters.Count == 0)
+            {
+                Console.WriteLine(" - No clients connected");
+                return 0;
+            }
+            else
+            {
+                Console.WriteLine(" - Number of availible clients: " + portsCommunication.ConnectedRouters.Count);
+                int i = 0;
+                foreach (LSRouter client in portsCommunication.ConnectedRouters)
+                {
+                    if (client.IsActive)
+                    {
+                        i++;
+                        Console.WriteLine(i + ". " + "IP: " + client.IpAddress);
+                    }
+                }
+                return i;
+            }
+            
         }
 
 

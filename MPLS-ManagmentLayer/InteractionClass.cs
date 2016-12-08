@@ -128,7 +128,7 @@ namespace MPLS_ManagmentLayer
          */
         public void ShowClientList()
         {
-            
+
             if (managementClass.portsCommunication.ConnectedRouters.Count == 0)
             {
                 Console.WriteLine(" - No clients connected");

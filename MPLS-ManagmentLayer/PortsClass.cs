@@ -22,28 +22,22 @@ namespace MPLS_ManagmentLayer
         Socket mySocket;
         IPEndPoint myIpEndPoint;
 
-        IPEndPoint cloudIPEndPoint;
-        EndPoint cloudEndPoint;
-        IPEndPoint receivedIPEndPoint;
+        IPEndPoint agentIPEndPoint;
+        EndPoint agentEndPoint;
 
         byte[] buffer;
         byte[] packet;
 
         IPAddress myIpAddress;
         int myPort;
-
-        IPAddress cloudIpAddress;
-        int cloudPort;
-
+        
         private ManagementPacket managmentPacket = new ManagementPacket();
-
         private List<LSRouter> connectedRouters = new List<LSRouter>();
 
         public List<LSRouter> ConnectedRouters
         {
             get { return connectedRouters; }
         }
-
         public IPAddress MyIPAddress
         {
             get { return myIpAddress; }
@@ -58,7 +52,7 @@ namespace MPLS_ManagmentLayer
         {
             InitializeData(configurationBase.localIP, configurationBase.localPort, configurationBase.cloudIP, configurationBase.cloudPort);
             InitializeSocket();
-            Console.WriteLine("Config Loaded - local IP: " + myIpAddress + " local Port: " + myPort + " cloud IP: "+cloudIpAddress +" cloud Port: " + cloudPort);
+            //Console.WriteLine("Config Loaded - local IP: " + myIpAddress + " local Port: " + myPort + " cloud IP: "+routerIpAddress +" cloud Port: " + cloudPort);
         }
 
         /*
@@ -67,10 +61,7 @@ namespace MPLS_ManagmentLayer
         private void InitializeData(IPAddress myIpAddress, int myPort, IPAddress cloudIpAddress, int cloudPort)
         {
             this.myIpAddress = myIpAddress;
-            this.myPort = myPort;
-            this.cloudIpAddress = cloudIpAddress;
-            this.cloudPort = cloudPort;
-        }
+            this.myPort = myPort;        }
 
         /*
 		* Metoda odpowiedzialna za inicjalizację nasłuchiwania na przychodzące wiadomośći.
@@ -84,14 +75,14 @@ namespace MPLS_ManagmentLayer
 
 
             //tworzymy punkt końcowy chmury kablowej
-            cloudIPEndPoint = new IPEndPoint(cloudIpAddress, cloudPort);
-            cloudEndPoint = (EndPoint)cloudIPEndPoint;
+            agentIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            agentEndPoint = (EndPoint)agentIPEndPoint;
 
             //tworzymy bufor nasłuchujący
             buffer = new byte[1024];
 
             //inicjalizacja nasłuchiwania
-            mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref cloudEndPoint, new AsyncCallback(ReceivedPacket), null);
+            mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref agentEndPoint, new AsyncCallback(ReceivedPacket), null);
         }
 
 
@@ -103,31 +94,29 @@ namespace MPLS_ManagmentLayer
         private void ReceivedPacket(IAsyncResult res)
         {
             //kończymy odbieranie pakietu - metoda zwraca rozmiar faktycznie otrzymanych danych
-            int size = mySocket.EndReceiveFrom(res, ref cloudEndPoint);
+            int size = mySocket.EndReceiveFrom(res, ref agentEndPoint);
 
             //tworzę tablicę bajtów składającą się jedynie z danych otrzymanych (otrzymany pakiet)
             byte[] receivedPacket = new byte[size];
             Array.Copy(buffer, receivedPacket, receivedPacket.Length);
 
 
-
             //tworzę tymczasoyw punkt końcowy zawierający informacje o nadawcy (jego ip oraz nr portu)
             //tutaj niby zawsze będzie to z chmury kablowej więc cloudIPEndPoint powinien być tym samym co receivedIPEndPoint
             //tutaj można będzie zrobić sprawdzenie bo cloud to teoria a received to praktyka skąd przyszły dane
-            receivedIPEndPoint = (IPEndPoint)cloudEndPoint;
+            IPEndPoint receivedIPEndPoint = (IPEndPoint)agentEndPoint;
 
             //generujemy logi
-
             LogMaker.MakeLog("Packet received from" + receivedIPEndPoint.Address + " port: "+receivedIPEndPoint.Port);
 
             //przesyłam pakiet do metody przetwarzającej
-            ProcessReceivedPacket(receivedPacket);
+            ProcessReceivedPacket(receivedPacket, receivedIPEndPoint);
 
             //zeruje bufor odbierający
             buffer = new byte[1024];
 
             //uruchamiam ponowne nasłuchiwanie
-            mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref cloudEndPoint, new AsyncCallback(ReceivedPacket), null);
+            mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref agentEndPoint, new AsyncCallback(ReceivedPacket), receivedIPEndPoint);
         }
 
         /*
@@ -139,15 +128,17 @@ namespace MPLS_ManagmentLayer
             //kończymy wysyłanie pakietu - funkcja zwraca rozmiar wysłanego pakietu
             int size = mySocket.EndSendTo(res);
 
+            var endPoint = res.AsyncState as IPEndPoint; 
+
             //tworzmy log zdarzenia
-            LogMaker.MakeLog("Packet sent to "+receivedIPEndPoint.Address + "port: "+receivedIPEndPoint.Port);
+            LogMaker.MakeLog("Packet sent to "+endPoint.Address + "port: "+endPoint.Port);
 
         }
 
         /*
 		* Metoda odpowiedzialna za przetwarzanie odebranego pakietu.
 		*/
-        private void ProcessReceivedPacket(byte[] receivedPacketBytes)
+        private void ProcessReceivedPacket(byte[] receivedPacketBytes, IPEndPoint receivedIPEndPoint)
         {
             //w celach testowych przypisuje ten sam pakiet co przyszedł do wysłania
             packet = receivedPacketBytes;
@@ -157,7 +148,7 @@ namespace MPLS_ManagmentLayer
             switch (receivedPacket.DataIdentifier)
             {
                 case 0:
-                    AddConectedRouter(receivedPacket);
+                    AddConectedRouter(receivedPacket, receivedIPEndPoint);
                     break;
                 case 1:
                     RestartRouterTimer(receivedPacket);
@@ -180,10 +171,10 @@ namespace MPLS_ManagmentLayer
 
         }
 
-        private void AddConectedRouter(ManagementPacket packet)
+        private void AddConectedRouter(ManagementPacket packet, IPEndPoint receivedIPEndPoint)
         {
             bool flag = false;
-            LSRouter lsRouter = new LSRouter(packet.IpSource);
+            LSRouter lsRouter = new LSRouter(packet.IpSource, receivedIPEndPoint.Port);
             foreach (LSRouter router in ConnectedRouters)
             {
                 if (router.IpAddress == lsRouter.IpAddress)
@@ -229,14 +220,15 @@ namespace MPLS_ManagmentLayer
 		* Metoda odpowiedzialna za inicjalizowanie wysyłania własnego pakietu przez węzeł kliencki.
 		* - metoda publiczna, wywoływana przez inne klasy w celu nadania wiadomosćil;
 		*/
-        public void SendMyPacket(byte[] myPacket)
+        public void SendMyPacket(byte[] myPacket, IPEndPoint agentIPEndPoint)
         {
             //przypisujemy pakiet do zmiennej lokalnej
             packet = myPacket;
 
             //inicjuje start wysyłania przetworzonego pakietu do nadawcy
-            mySocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, cloudIPEndPoint, new AsyncCallback(SendPacket), null);
+            mySocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, agentIPEndPoint, new AsyncCallback(SendPacket), null);
         }
+
 
 
 
