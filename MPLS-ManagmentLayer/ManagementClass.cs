@@ -116,7 +116,7 @@ namespace MPLS_ManagmentLayer
             Console.WriteLine("Choose router by typing ID: ");
             int destinationRouterId = Int32.Parse(Console.ReadLine());
 
-            if(destinationRouterId <= idRange)
+            if(destinationRouterId < idRange)
             {
                 if (portsCommunication.ConnectedRouters[destinationRouterId].IsActive)
                 {
@@ -185,7 +185,7 @@ namespace MPLS_ManagmentLayer
                 {
                     if (client.IsActive)
                     {
-                        Console.WriteLine(i + ". " + "IP: " + client.IpAddress);
+                        Console.WriteLine(portsCommunication.ConnectedRouters.IndexOf(client) + ". " + "IP: " + client.IpAddress);
                         i++;
                     }
                 }
