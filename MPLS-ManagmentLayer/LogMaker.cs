@@ -37,7 +37,16 @@ namespace MPLS_ManagmentLayer
                 _logID++;
             }
 
-            //Console.WriteLine("\n" + log + "\n" );
+            //Console.WriteLine(log);
+        }
+
+        public static void MakeConsoleLog(string logDescription)
+        {
+            string log;
+
+            log = _logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
+            Console.WriteLine(log);
+
         }
 
 

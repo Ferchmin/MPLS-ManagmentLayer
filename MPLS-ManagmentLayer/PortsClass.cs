@@ -132,7 +132,6 @@ namespace MPLS_ManagmentLayer
 
             //tworzmy log zdarzenia
             LogMaker.MakeLog("Packet sent to "+endPoint.Address + "port: "+endPoint.Port);
-
         }
 
         /*
@@ -189,6 +188,7 @@ namespace MPLS_ManagmentLayer
             {
                 ConnectedRouters.Add(lsRouter);
                 LogMaker.MakeLog("Received IsUp from: " + lsRouter.IpAddress);
+                LogMaker.MakeConsoleLog("Received IsUp from: " + lsRouter.IpAddress);
             }
 
         }

@@ -1,7 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?> 
 <ManagmentLayer>
-  <localIP>127.0.0.1</localIP>
-  <localPort>6001</localPort>
-  <cloudIP>127.0.0.1</cloudIP>
-  <cloudPort>6002</cloudPort>
+  <localIP>127.2.0.0</localIP>
+  <localPort>7777</localPort>
  </ManagmentLayer>
