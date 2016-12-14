@@ -44,6 +44,8 @@ namespace MPLS_ManagmentLayer
             set { myIpAddress = value; }
         }
 
+        public PacketHandler packetHandlingDelegate;
+
 
         /*
 		* Konstruktor - wymaga podania zmiennych pobranych z pliku konfiguracyjnego
@@ -147,15 +149,15 @@ namespace MPLS_ManagmentLayer
             switch (receivedPacket.DataIdentifier)
             {
                 case 0:
-                    AddConectedRouter(receivedPacket, receivedIPEndPoint);
+                    packetHandlingDelegate.AddConectedRouter(receivedPacket, receivedIPEndPoint);
                     break;
                 case 1:
-                    RestartRouterTimer(receivedPacket);
+                    packetHandlingDelegate.RestartRouterTimer(receivedPacket);
                     break;
                 case 2:
                     break;
                 case 3:
-                    GetResponse(receivedPacket);
+                    packetHandlingDelegate.GetResponse(receivedPacket);
                     break;
                 default:
                     break;

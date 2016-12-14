@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 */
 namespace MPLS_ManagmentLayer
 {
-    class ManagementClass
+    class ManagementClass:PacketHandler
     {
         /*
          * Zmienne lokalne:
@@ -33,6 +33,12 @@ namespace MPLS_ManagmentLayer
         public string LogFilePath { get; private set; }
         private int logID;
 
+        private List<LSRouter> connectedRouters = new List<LSRouter>();
+        public List<LSRouter> ConnectedRouters
+        {
+            get { return connectedRouters; }
+        }
+
 
         /*
          * Konstruktor obiektu
@@ -42,6 +48,7 @@ namespace MPLS_ManagmentLayer
         {
             configurationBase = new ConfigurationClass();
             portsCommunication = new PortsClass(configurationBase);
+            portsCommunication.packetHandlingDelegate = this;
             logMaker = new LogMaker();
 
             LogMaker.MakeLog("Managment agent is online");
@@ -211,5 +218,59 @@ namespace MPLS_ManagmentLayer
         {
 
         }
+
+        // Delegate test
+
+        public void GetResponse(ManagementPacket packet)
+        {
+            //Make a log
+            LogMaker.MakeLog("Received response from: " + packet.IpSource + " : " + packet.Data);
+        }
+
+        public void AddConectedRouter(ManagementPacket packet, IPEndPoint receivedIPEndPoint)
+        {
+            bool flag = false;
+            LSRouter lsRouter = new LSRouter(packet.IpSource, receivedIPEndPoint.Port);
+            foreach (LSRouter router in ConnectedRouters)
+            {
+                if (router.IpAddress == lsRouter.IpAddress)
+                {
+                    flag = true;
+                }
+            }
+
+            if (flag)
+            {
+                RestartRouterTimer(packet);
+            }
+            else
+            {
+                ConnectedRouters.Add(lsRouter);
+                LogMaker.MakeLog("Received IsUp from: " + lsRouter.IpAddress);
+                LogMaker.MakeConsoleLog("Received IsUp from: " + lsRouter.IpAddress);
+            }
+
+        }
+
+        public void RestartRouterTimer(ManagementPacket packet)
+        {
+            foreach (LSRouter router in ConnectedRouters)
+            {
+                if (router.IpAddress == packet.IpSource)
+                {
+                    router.keepAliveTimer.Stop();
+                    router.keepAliveTimer.Start();
+
+                    LogMaker.MakeLog("Received keepAlive from: " + router.IpAddress);
+
+                }
+                else
+                {
+                    LogMaker.MakeLog("Received keepAlive from unknown router");
+                }
+            }
+
+        }
+
     }
 }

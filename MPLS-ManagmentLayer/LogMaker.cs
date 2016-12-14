@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MPLS_ManagmentLayer
@@ -13,6 +14,7 @@ namespace MPLS_ManagmentLayer
         private static string _fileLogPath;
         private static int _logID;
 
+        private static ReaderWriterLockSlim _writeLock = new ReaderWriterLockSlim();
 
         public LogMaker()
         {
@@ -25,17 +27,14 @@ namespace MPLS_ManagmentLayer
         }
 
 
-
         public static void MakeLog(string logDescription)
         {
-            string log;
 
-            using (StreamWriter file = new StreamWriter(_fileLogPath, true))
-            {
-                log = _logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
-                file.WriteLine(log);
-                _logID++;
-            }
+            //Console.WriteLine(log);
+            string log = "#" + _logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
+            _logID++;
+
+            WriteToFileThreadSafe(log, _fileLogPath);
 
             //Console.WriteLine(log);
         }
@@ -47,6 +46,26 @@ namespace MPLS_ManagmentLayer
             log = _logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
             Console.WriteLine(log);
 
+        }
+
+        public static void WriteToFileThreadSafe(string text, string path)
+        {
+            // Set Status to Locked
+            _writeLock.EnterWriteLock();
+            try
+            {
+                // Append text to the file
+                using (StreamWriter sw = File.AppendText(path))
+                {
+                    sw.WriteLine(text);
+                    sw.Close();
+                }
+            }
+            finally
+            {
+                // Release lock
+                _writeLock.ExitWriteLock();
+            }
         }
 
 
