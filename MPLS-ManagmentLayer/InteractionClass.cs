@@ -80,19 +80,19 @@ namespace MPLS_ManagmentLayer
             switch (command)
             {
                 case "ADD":
-                    Console.WriteLine(" Executing ADD");
+                    Console.WriteLine("Executing ADD");
                     managementClass.SendAddCommand();
                     break;
                 case "1":
-                    Console.WriteLine(" Executing ADD");
+                    Console.WriteLine("Executing ADD");
                     managementClass.SendAddCommand();
                     break;
                 case "REMOVE":
-                    Console.WriteLine(" Executing REMOVE command");
+                    Console.WriteLine("Executing REMOVE command");
                     managementClass.SendRemoveCommand();
                     break;
                 case "2":
-                    Console.WriteLine(" Executing REMOVE command");
+                    Console.WriteLine("Executing REMOVE command");
                     managementClass.SendRemoveCommand();
                     break;
                 //case "SWAP":
@@ -115,7 +115,7 @@ namespace MPLS_ManagmentLayer
                     ShowHelp();
                     break;
                 default:
-                    Console.WriteLine(" Invalid command, try again");
+                    Console.WriteLine("Invalid command, try again");
                     LogMaker.MakeLog("Invalid command");
                     break;
             }
@@ -131,11 +131,11 @@ namespace MPLS_ManagmentLayer
 
             if (managementClass.portsCommunication.ConnectedRouters.Count == 0)
             {
-                Console.WriteLine(" - No clients connected");
+                Console.WriteLine("No clients connected");
             }
             else
             {
-                Console.WriteLine(" - Number of availible clients: " + managementClass.portsCommunication.ConnectedRouters.Count);
+                Console.WriteLine("Number of availible clients: " + managementClass.portsCommunication.ConnectedRouters.Count);
                 int i = 0;
                 foreach (LSRouter client in managementClass.portsCommunication.ConnectedRouters)
                 {

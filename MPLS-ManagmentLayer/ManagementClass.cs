@@ -158,7 +158,7 @@ namespace MPLS_ManagmentLayer
                 Console.WriteLine("State the InterfaceIn: ");
                 int intIn = Int32.Parse(Console.ReadLine());
 
-                string packetMessage = "REMOVE " + tableLine.ToString() + " " + intIn.ToString();
+                string packetMessage = "Remove " + tableLine.ToString() + " " + intIn.ToString();
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
@@ -179,12 +179,12 @@ namespace MPLS_ManagmentLayer
 
             if (portsCommunication.ConnectedRouters.Count == 0)
             {
-                Console.WriteLine(" - No clients connected");
+                Console.WriteLine("No clients connected");
                 return 0;
             }
             else
             {
-                Console.WriteLine(" - Number of availible clients: " + portsCommunication.ConnectedRouters.Count);
+                Console.WriteLine("Number of availible clients: " + portsCommunication.ConnectedRouters.Count);
                 int i = 0;
                 foreach (LSRouter client in portsCommunication.ConnectedRouters)
                 {
