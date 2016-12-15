@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
+
 /*
  * Klasa odpowiedzialna za zarządanie protokołem komunikacyjnym oraz tworzeniem logów
  * - zapisujemy tutaj całą metodyke działania protokołu
@@ -16,22 +15,13 @@ using System.Threading.Tasks;
 */
 namespace MPLS_ManagmentLayer
 {
-    class ManagementClass:PacketHandler
+    class ManagementClass
     {
-        /*
-         * Zmienne lokalne:
-         * - LogFilePath, ścieżka do pliku z logami
-         * - logID, identyfikator logów
-        */
 
         public ConfigurationClass configurationBase;
         public PortsClass portsCommunication;
 
         public LogMaker logMaker;
-
-
-        public string LogFilePath { get; private set; }
-        private int logID;
 
         private List<LSRouter> connectedRouters = new List<LSRouter>();
         public List<LSRouter> ConnectedRouters
@@ -48,26 +38,11 @@ namespace MPLS_ManagmentLayer
         {
             configurationBase = new ConfigurationClass();
             portsCommunication = new PortsClass(configurationBase);
-            //portsCommunication.packetHandlingDelegate = this;
             logMaker = new LogMaker();
 
-            LogMaker.MakeLog("Managment agent is online");
-
-            logID = 0;
+            LogMaker.MakeLog("INFO - Managment agent is online");
         }
 
-        /*
-         * Metoda odpowiedzialna za analizowanie poprawności komendy z protokołem
-         * - metoda weryfikuje również, czy np nie wywołaliśmy komendy dla nieistniejącego w tablicy aktywnych
-         *  elementów sieci węzła;
-         * - jeżeli komenda jest prawidłowa to metoda zwraca true i przesyła komendę do wysłania do klasy PortsClass
-         * - jezeli komenda jest wadliwa, zwraca false, dzięki czemu w obiekt wywołujący (interactionclass) będzie wiedział,
-         *  że musi napisąć worning i poprosić o ponownę wpisanie komendy
-        */
-        public bool AnalyseCommand(string command)
-        {
-            return true;
-        }
 
         public void SendAddCommand()
         {
@@ -75,29 +50,28 @@ namespace MPLS_ManagmentLayer
 
             if (agentEndPoint == null)
             {
-                LogMaker.MakeLog("Failed to send ADD command - wrong router selected or no router availible");
+                LogMaker.MakeConsoleLog("ERROR - Failed to send ADD command - wrong router selected or no router availible");
             }
             else
             {
-
-                Console.WriteLine("Set LabelIn: ");
+                Console.Write("Set LabelIn: ");
                 int labelIn = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("State the InterfaceIn: ");
+                Console.Write("State the InterfaceIn: ");
                 int intIn = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("State the labelOut: ");
+                Console.Write("State the labelOut: ");
                 int labelOut = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("State the InterfaceOut: ");
+                Console.Write("State the InterfaceOut: ");
                 int intOut = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("Choose which operation to perform (pop, push or swap): ");
+                Console.Write("Choose which operation to perform (pop, push or swap): ");
                 string operation = Console.ReadLine();
 
                 operation = operation.ToLower();
 
-                string packetMessage = "Add " + labelIn.ToString() + " " + intIn.ToString() + " " + labelOut.ToString() + " " + intOut.ToString()+ " " + operation;
+                string packetMessage = "Add " + labelIn.ToString() + " " + intIn.ToString() + " " + labelOut.ToString() + " " + intOut.ToString() + " " + operation;
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
@@ -106,77 +80,18 @@ namespace MPLS_ManagmentLayer
                 commandPacket.Data = packetMessage;
                 commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
 
-
                 portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
 
-                LogMaker.MakeLog("Sent ADD command to " + agentEndPoint.Address.ToString());
-                LogMaker.MakeConsoleLog("Sent ADD command to " + agentEndPoint.Address.ToString());
-
+                LogMaker.MakeLog("INFO - Sent ADD command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeConsoleLog("INFO - Sent ADD command to " + agentEndPoint.Address.ToString());
             }
-        }
-
-        public void SendAutomatedAdd(IPEndPoint agentEndPoint, int labelIn, int intIn, int labelOut, int intOut, string operation)
-        {
-            string packetMessage = "Add " + labelIn.ToString() + " " + intIn.ToString() + " " + labelOut.ToString() + " " + intOut.ToString()+ " " + operation;
-
-                ManagementPacket commandPacket = new ManagementPacket();
-                commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
-                commandPacket.IpDestination = agentEndPoint.Address.ToString();
-                commandPacket.DataIdentifier = 2;
-                commandPacket.Data = packetMessage;
-                commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
-
-
-                portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
-                LogMaker.MakeLog("Sent ADD command to " + agentEndPoint.Address.ToString());
-                LogMaker.MakeConsoleLog("Sent ADD command to " + agentEndPoint.Address.ToString());
-        }
-
-        public void SendAutomatedRemove(IPEndPoint agentEndPoint,int labelIn, int intIn)
-        {
-            string packetMessage = "Remove " + labelIn.ToString() + " " + intIn.ToString();
-
-            ManagementPacket commandPacket = new ManagementPacket();
-            commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
-            commandPacket.IpDestination = agentEndPoint.Address.ToString();
-            commandPacket.DataIdentifier = 2;
-            commandPacket.Data = packetMessage;
-            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
-
-
-            portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
-
-            LogMaker.MakeLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
-            LogMaker.MakeConsoleLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
-        }
-
-        public void FixBrokenLink()
-        {
-            IPEndPoint LSR3 = new IPEndPoint(IPAddress.Parse("127.0.3.0"), 7030);
-
-            SendAutomatedRemove(LSR3,12,1);
-            SendAutomatedRemove(LSR3, 22, 1);
-            SendAutomatedRemove(LSR3, 56, 2);
-            SendAutomatedRemove(LSR3, 57, 2);
-
-            SendAutomatedAdd(LSR3, 12, 1, 1, 4, "push");
-            SendAutomatedAdd(LSR3, 56, 2, 1, 4, "push");
-
-            IPEndPoint LSR4 = new IPEndPoint(IPAddress.Parse("127.0.4.0"), 7040);
-            SendAutomatedRemove(LSR4, 1, 1);
-            SendAutomatedRemove(LSR4, 22, 1);
-            SendAutomatedRemove(LSR4, 57, 1);
-
-            SendAutomatedAdd(LSR4, 2, 2, 0, 0, "pop");
-            SendAutomatedAdd(LSR4, 12, 2, 44, 3, "swap");
-            SendAutomatedAdd(LSR4, 56, 2, 57, 4, "swap");
         }
 
         public IPEndPoint ChooseTargetRouter()
         {
             int idRange = ShowClientList();
 
-            if(idRange == 0)
+            if (idRange == 0)
             {
                 return null;
             }
@@ -185,26 +100,35 @@ namespace MPLS_ManagmentLayer
             int port;
 
             Console.WriteLine("Choose router by typing ID: ");
-            int destinationRouterId = Int32.Parse(Console.ReadLine());
 
-            if(destinationRouterId < idRange)
+            try
             {
-                if (portsCommunication.ConnectedRouters[destinationRouterId].IsActive)
+                int destinationRouterId = Int32.Parse(Console.ReadLine());
+                if (destinationRouterId < idRange)
                 {
-                    ipAddress = IPAddress.Parse(portsCommunication.ConnectedRouters[destinationRouterId].IpAddress);
-                    port = portsCommunication.ConnectedRouters[destinationRouterId].Port;
-                    return new IPEndPoint(ipAddress, port);
-
+                    if (portsCommunication.ConnectedRouters[destinationRouterId].IsActive)
+                    {
+                        ipAddress = IPAddress.Parse(portsCommunication.ConnectedRouters[destinationRouterId].IpAddress);
+                        port = portsCommunication.ConnectedRouters[destinationRouterId].Port;
+                        return new IPEndPoint(ipAddress, port);
+                    }
+                    else
+                    {
+                        Console.WriteLine("ERROR - Router is no longer active");
+                        return null;
+                    }
                 }
                 else
                 {
-                    Console.WriteLine("Router is no longer active");
+                    Console.WriteLine("ERROR - Wrong router selected");
                     return null;
                 }
-            
             }
-            Console.WriteLine("Wrong router selected");
-            return null;
+            catch
+            {
+                Console.WriteLine("Please, choose the number: ");
+                return ChooseTargetRouter();
+            } 
         }
 
         public void SendRemoveCommand()
@@ -213,15 +137,14 @@ namespace MPLS_ManagmentLayer
 
             if (agentEndPoint == null)
             {
-                LogMaker.MakeLog("Failed to send REMOVE command - wrong router selected");
+                LogMaker.MakeConsoleLog("ERROR - Failed to send REMOVE command - wrong router selected");
             }
             else
             {
-
-                Console.WriteLine("Set LabelIn: ");
+                Console.Write("Set LabelIn: ");
                 int labelIn = Int32.Parse(Console.ReadLine());
 
-                Console.WriteLine("State the InterfaceIn: ");
+                Console.Write("State the InterfaceIn: ");
                 int intIn = Int32.Parse(Console.ReadLine());
 
                 string packetMessage = "Remove " + labelIn.ToString() + " " + intIn.ToString();
@@ -236,14 +159,13 @@ namespace MPLS_ManagmentLayer
 
                 portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
 
-                LogMaker.MakeLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
-                LogMaker.MakeConsoleLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeLog("INFO - Sent REMOVE command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeConsoleLog("INFO - Sent REMOVE command to " + agentEndPoint.Address.ToString());
             }
         }
 
         public int ShowClientList()
         {
-
             for (int i = 0; i < portsCommunication.ConnectedRouters.Count; i++)
             {
                 if (!portsCommunication.ConnectedRouters[i].IsActive)
@@ -252,11 +174,9 @@ namespace MPLS_ManagmentLayer
                 }
             }
 
-
-
             if (portsCommunication.ConnectedRouters.Count == 0)
             {
-                Console.WriteLine("No clients connected");
+                Console.WriteLine("INFO - No clients connected");
                 return 0;
             }
             else
@@ -271,81 +191,15 @@ namespace MPLS_ManagmentLayer
                 }
                 return i;
             }
-            
         }
 
-
-        /*
-         * Metoda odpowiedzialna za sprawdzenie (w jakiś sposób), czy danych host jest dostępny czy może należy
-         * wyświetlić powiadomienie (allert), dotyczący tego, że np nie otrzymaliśmy 3 keepalive wiec prawd.
-         * tak węzeł is down (jest nieosiągalny)
-         * 
-         * -trzeba to jakoś rozkminić i wymyślec mechanizm (takie wiaodmości będziemy wysyłać co 30 sekund)
-        */
-        public void KeepAliveVeryfication(int id)
-        {
-
-        }
-
-        // Delegate test
-
-        public void GetResponse(ManagementPacket packet)
-        {
-            //Make a log
-            LogMaker.MakeLog("Received response from: " + packet.IpSource + " : " + packet.Data);
-        }
-
-        public void AddConectedRouter(ManagementPacket packet, IPEndPoint receivedIPEndPoint)
-        {
-            bool flag = false;
-            LSRouter lsRouter = new LSRouter(packet.IpSource, receivedIPEndPoint.Port);
-            foreach (LSRouter router in ConnectedRouters)
-            {
-                if (router.IpAddress == lsRouter.IpAddress)
-                {
-                    flag = true;
-                }
-            }
-
-            if (flag)
-            {
-                RestartRouterTimer(packet);
-            }
-            else
-            {
-                ConnectedRouters.Add(lsRouter);
-                LogMaker.MakeLog("Received IsUp from: " + lsRouter.IpAddress);
-                LogMaker.MakeConsoleLog("Received IsUp from: " + lsRouter.IpAddress);
-            }
-
-        }
-
-        public void RestartRouterTimer(ManagementPacket packet)
-        {
-            foreach (LSRouter router in ConnectedRouters)
-            {
-                if (router.IpAddress == packet.IpSource)
-                {
-                    router.keepAliveTimer.Stop();
-                    router.keepAliveTimer.Start();
-
-                    LogMaker.MakeLog("Received keepAlive from: " + router.IpAddress);
-
-                }
-                else
-                {
-                    LogMaker.MakeLog("Received keepAlive from unknown router");
-                }
-            }
-        }
-
-            public void SendGetTableCommand()
+       public void SendGetTableCommand()
         {
             IPEndPoint agentEndPoint = ChooseTargetRouter();
 
             if (agentEndPoint == null)
             {
-                LogMaker.MakeLog("Failed to send GETTABLE command - wrong router selected");
+                LogMaker.MakeConsoleLog("ERROR - Failed to send GETTABLE command - wrong router selected.");
             }
             else
             {
@@ -361,11 +215,87 @@ namespace MPLS_ManagmentLayer
 
                 portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
 
-                LogMaker.MakeLog("Sent GETTABLE command to " + agentEndPoint.Address.ToString());
-                LogMaker.MakeConsoleLog("Sent GETTABLE command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeLog("INFO - Sent GetTable command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeConsoleLog("INFO - Sent GetTable command to " + agentEndPoint.Address.ToString());
             }
         }
 
-    }
 
+
+        #region SHOW_METHODES
+        public void SendAutomatedAdd(IPEndPoint agentEndPoint, int labelIn, int intIn, int labelOut, int intOut, string operation)
+        {
+            string packetMessage = "Add " + labelIn.ToString() + " " + intIn.ToString() + " " + labelOut.ToString() + " " + intOut.ToString() + " " + operation;
+
+            ManagementPacket commandPacket = new ManagementPacket();
+            commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+            commandPacket.IpDestination = agentEndPoint.Address.ToString();
+            commandPacket.DataIdentifier = 2;
+            commandPacket.Data = packetMessage;
+            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+
+
+            portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
+            LogMaker.MakeLog("INFO - Sent ADD command to " + agentEndPoint.Address.ToString());
+            LogMaker.MakeConsoleLog("INFO - Sent ADD command to " + agentEndPoint.Address.ToString());
+        }
+
+        public void SendAutomatedRemove(IPEndPoint agentEndPoint, int labelIn, int intIn)
+        {
+            string packetMessage = "Remove " + labelIn.ToString() + " " + intIn.ToString();
+
+            ManagementPacket commandPacket = new ManagementPacket();
+            commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+            commandPacket.IpDestination = agentEndPoint.Address.ToString();
+            commandPacket.DataIdentifier = 2;
+            commandPacket.Data = packetMessage;
+            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+
+
+            portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
+
+            LogMaker.MakeLog("INFO - Sent REMOVE command to " + agentEndPoint.Address.ToString());
+            LogMaker.MakeConsoleLog("INFO - Sent REMOVE command to " + agentEndPoint.Address.ToString());
+        }
+
+        public void FixBrokenLink()
+        {
+            IPEndPoint LSR3 = new IPEndPoint(IPAddress.Parse("127.0.3.0"), 7030);
+
+            //SendAutomatedRemove(LSR3, 12, 1);
+            SendAutomatedRemove(LSR3, 22, 1);
+            SendAutomatedRemove(LSR3, 56, 2);
+            SendAutomatedRemove(LSR3, 57, 2);
+
+            //SendAutomatedAdd(LSR3, 12, 1, 1, 4, "push");
+            SendAutomatedAdd(LSR3, 56, 2, 1, 4, "push");
+
+            IPEndPoint LSR4 = new IPEndPoint(IPAddress.Parse("127.0.4.0"), 7040);
+            SendAutomatedRemove(LSR4, 1, 1);
+            SendAutomatedRemove(LSR4, 22, 1);
+            SendAutomatedRemove(LSR4, 57, 1);
+
+            SendAutomatedAdd(LSR4, 2, 2, 0, 0, "pop");
+            SendAutomatedAdd(LSR4, 12, 2, 44, 3, "swap");
+            SendAutomatedAdd(LSR4, 56, 2, 58, 4, "swap");
+        }
+
+        public void FixedBrokenLSR()
+        {
+            IPEndPoint LSR1 = new IPEndPoint(IPAddress.Parse("127.0.1.0"), 7010);
+            SendAutomatedRemove(LSR1, 11, 1);
+            SendAutomatedAdd(LSR1, 11, 1, 12, 3, "swap");
+
+            IPEndPoint LSR5 = new IPEndPoint(IPAddress.Parse("127.0.5.0"), 7050);
+            SendAutomatedAdd(LSR5, 12, 1, 0, 3, "pop");
+
+            IPEndPoint LSR2 = new IPEndPoint(IPAddress.Parse("127.0.2.0"), 7020);
+            SendAutomatedRemove(LSR2, 55, 1);
+            SendAutomatedAdd(LSR2, 55, 1, 56, 4, "swap");
+
+            IPEndPoint LSR6 = new IPEndPoint(IPAddress.Parse("127.0.6.0"), 7060);
+            SendAutomatedAdd(LSR6, 56, 2, 0, 3, "pop");
+        }
+        #endregion
     }
+}

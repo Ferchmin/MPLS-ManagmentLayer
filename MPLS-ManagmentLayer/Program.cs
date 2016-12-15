@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 /*
  * Aplikacja CENTRUM ZARZĄDZANIA
@@ -15,37 +11,31 @@ namespace MPLS_ManagmentLayer
 {
     class Program
     {
-
         static void Main(string[] args)
         {
-
             string inputString;
             bool run = true;
-
-            //tworzymy wszystkie główne obiekty
-            //ConfigurationClass configurationBase = new ConfigurationClass();
-            //PortsClass portsCommunication = new PortsClass(configurationBase);
             InteractionClass consoleInterface = new InteractionClass();
-            //ManagementClass manager = new ManagementClass();
 
-            do
+            Console.Write("\nEnter commands here: ");
+
+            while(run)
             {
-                Console.Write("Enter commands here: ");
                 inputString = Console.ReadLine();
 
                 if (inputString == "exit")
                 {
                     run = false;
-                    LogMaker.MakeLog("Management agent is offline");
+                    LogMaker.MakeLog("INFO - Management agent is offline");
                 }
                 else
                 {
-                    consoleInterface.GetCommand(inputString);
+                    if (inputString == "")
+                        Console.Write("Enter commands here: ");
+                    else
+                        consoleInterface.GetCommand(inputString);
                 }
-
-            } while (run);
-
-
+            }
         }
     }
 }

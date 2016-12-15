@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 /*
  * Klasa odpowiedzialna za wszelkie połaczenia sieciowe programu
@@ -18,7 +15,8 @@ namespace MPLS_ManagmentLayer
 {
     class PortsClass
     {
-        
+
+        #region Variables
         Socket mySocket;
         IPEndPoint myIpEndPoint;
 
@@ -26,11 +24,13 @@ namespace MPLS_ManagmentLayer
         EndPoint agentEndPoint;
 
         byte[] buffer;
-        byte[] packet;
+        int bufferSize;
 
         IPAddress myIpAddress;
         int myPort;
-        
+        #endregion
+
+        #region Accessors
         private ManagementPacket managmentPacket = new ManagementPacket();
         private List<LSRouter> connectedRouters = new List<LSRouter>();
 
@@ -43,8 +43,7 @@ namespace MPLS_ManagmentLayer
             get { return myIpAddress; }
             set { myIpAddress = value; }
         }
-
-        //public PacketHandler packetHandlingDelegate;
+        #endregion
 
 
         /*
@@ -54,7 +53,6 @@ namespace MPLS_ManagmentLayer
         {
             InitializeData(configurationBase.localIP, configurationBase.localPort, configurationBase.cloudIP, configurationBase.cloudPort);
             InitializeSocket();
-            //Console.WriteLine("Config Loaded - local IP: " + myIpAddress + " local Port: " + myPort + " cloud IP: "+routerIpAddress +" cloud Port: " + cloudPort);
         }
 
         /*
@@ -63,7 +61,10 @@ namespace MPLS_ManagmentLayer
         private void InitializeData(IPAddress myIpAddress, int myPort, IPAddress cloudIpAddress, int cloudPort)
         {
             this.myIpAddress = myIpAddress;
-            this.myPort = myPort;        }
+            this.myPort = myPort;
+
+            bufferSize = 275;
+        }
 
         /*
 		* Metoda odpowiedzialna za inicjalizację nasłuchiwania na przychodzące wiadomośći.
@@ -75,18 +76,16 @@ namespace MPLS_ManagmentLayer
             myIpEndPoint = new IPEndPoint(myIpAddress, myPort);
             mySocket.Bind(myIpEndPoint);
 
-
             //tworzymy punkt końcowy chmury kablowej
             agentIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
             agentEndPoint = (EndPoint)agentIPEndPoint;
 
             //tworzymy bufor nasłuchujący
-            buffer = new byte[1024];
+            buffer = new byte[bufferSize];
 
             //inicjalizacja nasłuchiwania
             mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref agentEndPoint, new AsyncCallback(ReceivedPacket), null);
         }
-
 
         /*
 		* Metoda odpowiedzialna za ukończenie odbierania pakietu.
@@ -102,20 +101,17 @@ namespace MPLS_ManagmentLayer
             byte[] receivedPacket = new byte[size];
             Array.Copy(buffer, receivedPacket, receivedPacket.Length);
 
-
             //tworzę tymczasoyw punkt końcowy zawierający informacje o nadawcy (jego ip oraz nr portu)
-            //tutaj niby zawsze będzie to z chmury kablowej więc cloudIPEndPoint powinien być tym samym co receivedIPEndPoint
-            //tutaj można będzie zrobić sprawdzenie bo cloud to teoria a received to praktyka skąd przyszły dane
             IPEndPoint receivedIPEndPoint = (IPEndPoint)agentEndPoint;
 
             //generujemy logi
-            LogMaker.MakeLog("Packet received from " + receivedIPEndPoint.Address + " port: "+receivedIPEndPoint.Port);
+            LogMaker.MakeLog("INFO - Packet received from " + receivedIPEndPoint.Address + " port: "+receivedIPEndPoint.Port);
 
             //przesyłam pakiet do metody przetwarzającej
             ProcessReceivedPacket(receivedPacket, receivedIPEndPoint);
 
             //zeruje bufor odbierający
-            buffer = new byte[1024];
+            buffer = new byte[bufferSize];
 
             //uruchamiam ponowne nasłuchiwanie
             mySocket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref agentEndPoint, new AsyncCallback(ReceivedPacket), receivedIPEndPoint);
@@ -133,7 +129,7 @@ namespace MPLS_ManagmentLayer
             var endPoint = res.AsyncState as IPEndPoint; 
 
             //tworzmy log zdarzenia
-            LogMaker.MakeLog("Packet sent to "+endPoint.Address + "port: "+endPoint.Port);
+            LogMaker.MakeLog("INFO - Packet sent to "+endPoint.Address + "port: "+endPoint.Port);
         }
 
         /*
@@ -141,9 +137,6 @@ namespace MPLS_ManagmentLayer
 		*/
         private void ProcessReceivedPacket(byte[] receivedPacketBytes, IPEndPoint receivedIPEndPoint)
         {
-            //w celach testowych przypisuje ten sam pakiet co przyszedł do wysłania
-            packet = receivedPacketBytes;
-
             ManagementPacket receivedPacket = new ManagementPacket(receivedPacketBytes);
 
             switch (receivedPacket.DataIdentifier)
@@ -155,11 +148,13 @@ namespace MPLS_ManagmentLayer
                     RestartRouterTimer(receivedPacket);
                     break;
                 case 2:
+                    //command
                     break;
                 case 3:
                     GetResponse(receivedPacket);
                     break;
                 default:
+                    LogMaker.MakeLog("ERROR - Received unknown type of packet " + receivedPacket.DataIdentifier.ToString() + " from: " + receivedIPEndPoint.Address.ToString());
                     break;
             }
         }
@@ -167,20 +162,35 @@ namespace MPLS_ManagmentLayer
         private void GetResponse(ManagementPacket packet)
         {
             string[] table = packet.Data.Split('|');
-            if ((table[0] == "Accepted") || (table[0] == "Denied"))
-                LogMaker.MakeLog("Received response from: " + packet.IpSource + " : " + packet.Data);
-            else
+
+            switch (table[0])
             {
-                LogMaker.MakeConsoleLog("Received table from: " + packet.IpSource);
-                LogMaker.MakeLog("Received table from: " + packet.IpSource);
-                foreach (var line in table)
-                {
-                    if (line != "")
+                case "Accepted":
+                    LogMaker.MakeLog("INFO - Received accepted response from: " + packet.IpSource + " : " + packet.Data);
+                    break;
+
+                case "Denied":
+                    LogMaker.MakeLog("INFO - Received denied response from: " + packet.IpSource + " : " + packet.Data);
+                    break;
+
+                default:
+                    LogMaker.MakeConsoleLog("INFO - Received table from: " + packet.IpSource);
+                    LogMaker.MakeLog("INFO - Received table from: " + packet.IpSource);
+
+                    String column = String.Format("{0,10} {1,12} {2,10} {3,12} {4,10}", "LabelIn:", "InterfaceIn:", "LabelOut:", "InterfaceOut:", "Operation:");
+                    Console.WriteLine("\n" + column);
+
+                    foreach (var line in table)
                     {
-                        string[] lineParts = line.Split('&');
-                        LogMaker.MakeConsoleLog("LabelIn: " + lineParts[0] + " InterfaceIn: " + lineParts[1] + " LabelOut: " + lineParts[2] + " InterfaceOut: " + lineParts[3] + " Operation: " + lineParts[4]);
+                        if (line != "")
+                        {
+                            string[] lineParts = line.Split('&');
+                            String row = String.Format("{0,-5} {1,-10} {2,-10} {3,-15} {4,-20}", lineParts[0], lineParts[1], lineParts[2], lineParts[3], lineParts[4]);
+                            Console.WriteLine(row);
+                            //LogMaker.MakeConsoleLog("LabelIn: " + lineParts[0] + " InterfaceIn: " + lineParts[1] + " LabelOut: " + lineParts[2] + " InterfaceOut: " + lineParts[3] + " Operation: " + lineParts[4]);
+                        }
                     }
-                }
+                    break;
             }
         }
 
@@ -203,12 +213,11 @@ namespace MPLS_ManagmentLayer
             else
             {
                 ConnectedRouters.Add(lsRouter);
-                LogMaker.MakeLog("Received IsUp from: " + lsRouter.IpAddress);
-                LogMaker.MakeConsoleLog("Received IsUp from: " + lsRouter.IpAddress);
+                LogMaker.MakeLog("INFO - Received IsUp from: " + lsRouter.IpAddress);
+                LogMaker.MakeConsoleLog("INFO - Received IsUp from: " + lsRouter.IpAddress);
             }
 
         }
-
 
         private void RestartRouterTimer(ManagementPacket packet)
         {
@@ -221,17 +230,16 @@ namespace MPLS_ManagmentLayer
                     router.keepAliveTimer.Start();
 
                     routerRestarted = true;
-                    LogMaker.MakeLog("Received keepAlive from: " + router.IpAddress);
+                    LogMaker.MakeLog("INFO - Received keepAlive from: " + router.IpAddress);
 
                 }
             }
             if (!routerRestarted)
             {
-                LogMaker.MakeLog("Received keepAlive from unknown router");
+                LogMaker.MakeLog("ERROR - Received keepAlive from unknown router");
             }
 
         }
-
 
         /*
 		* Metoda odpowiedzialna za inicjalizowanie wysyłania własnego pakietu przez węzeł kliencki.
@@ -239,16 +247,8 @@ namespace MPLS_ManagmentLayer
 		*/
         public void SendMyPacket(byte[] myPacket, IPEndPoint agentIPEndPoint)
         {
-            //przypisujemy pakiet do zmiennej lokalnej
-            packet = myPacket;
-
             //inicjuje start wysyłania przetworzonego pakietu do nadawcy
-            mySocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, agentIPEndPoint, new AsyncCallback(SendPacket), agentIPEndPoint);
+            mySocket.BeginSendTo(myPacket, 0, myPacket.Length, SocketFlags.None, agentIPEndPoint, new AsyncCallback(SendPacket), agentIPEndPoint);
         }
-
-
-
-
-
     }
 }

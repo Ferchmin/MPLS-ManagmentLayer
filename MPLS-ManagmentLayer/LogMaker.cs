@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MPLS_ManagmentLayer
 {
@@ -19,36 +16,26 @@ namespace MPLS_ManagmentLayer
         public LogMaker()
         {
             //inicjalizacja ustalonej ściezki pliku zawierającego historię zdarzeń
-            _fileLogPath = "LogDatabase.txt";
+            _fileLogPath = "LogDatabase_Management.txt";
 
             //odczytujemy wartość ID ostatniego zdarzenia zapisanego w pliku
             InitializeLogLastIdNumber();
-
-        }
-
-
-        public static void MakeLog(string logDescription)
-        {
-
-            //Console.WriteLine(log);
-            string log = "#" + _logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
-            _logID++;
-
-            WriteToFileThreadSafe(log, _fileLogPath);
-
-            //Console.WriteLine(log);
         }
 
         public static void MakeConsoleLog(string logDescription)
         {
             string log;
-
             log = _logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
-            Console.WriteLine("\n"+log);
-            Console.WriteLine("Enter commands here: ");
-
+            Console.Write("\n" + log);
         }
 
+        public static void MakeLog(string logDescription)
+        {
+            string log = "#" + _logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
+            _logID++;
+
+            WriteToFileThreadSafe(log, _fileLogPath);
+        }
         public static void WriteToFileThreadSafe(string text, string path)
         {
             // Set Status to Locked
@@ -68,8 +55,6 @@ namespace MPLS_ManagmentLayer
                 _writeLock.ExitWriteLock();
             }
         }
-
-
         private void InitializeLogLastIdNumber()
         {
             if (File.Exists(_fileLogPath))
@@ -85,6 +70,5 @@ namespace MPLS_ManagmentLayer
             else
                 _logID = 1;
         }
-
     }
 }

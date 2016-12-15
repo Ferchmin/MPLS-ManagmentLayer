@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
+﻿using System.Timers;
 
 namespace MPLS_ManagmentLayer
 {
     class LSRouter
     {
         private string ipAdress;
-
         private int port;
-
         private bool isActive;
-
         public System.Timers.Timer keepAliveTimer;
 
         public int Port
@@ -23,13 +14,11 @@ namespace MPLS_ManagmentLayer
             get { return port; }
             set { port = value; }
         }
-
         public string IpAddress
         {
             get { return ipAdress; }
             set { ipAdress = value; }
         }
-
         public bool IsActive
         {
             get { return isActive; }
@@ -46,14 +35,13 @@ namespace MPLS_ManagmentLayer
             keepAliveTimer.AutoReset = false;
             keepAliveTimer.Interval = 40000;
             keepAliveTimer.Enabled = true;
-
         }
 
 
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            LogMaker.MakeLog("Router: " + ipAdress + " deactivated - keepAlive timeout");
-            LogMaker.MakeConsoleLog("Router: " + ipAdress + " deactivated - keepAlive timeout");
+            LogMaker.MakeLog("ERROR - Router: " + ipAdress + " deactivated - keepAlive timeout");
+            LogMaker.MakeConsoleLog("ERROR - Router: " + ipAdress + " deactivated - keepAlive timeout");
             isActive = false;
             keepAliveTimer.Stop();
             keepAliveTimer.Close();

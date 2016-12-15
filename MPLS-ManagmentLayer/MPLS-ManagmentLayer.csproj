@@ -49,7 +49,6 @@
     <Compile Include="LSRouter.cs" />
     <Compile Include="ManagementClass.cs" />
     <Compile Include="ManagmentPacket.cs" />
-    <Compile Include="PacketHandler.cs" />
     <Compile Include="PacketStructure.cs" />
     <Compile Include="PortsClass.cs" />
     <Compile Include="Program.cs" />

@@ -1,16 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Serialization;
-
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
 
 
 /*
@@ -28,15 +18,6 @@ namespace MPLS_ManagmentLayer
     class ConfigurationClass
     {
 
-        /*
-         * Lokalne zmienne
-         * - CloudIPAdd - adres IP chmury kablowej
-         * - CloudPortNumber -numer portu w chmurze przypisany do komunikacji z tym urządzeniem
-         * - LocalIPAdd -numer IP przypisany do danego urządzenia
-         * - LocalPortNumber - numer portu przypisany do danego urządzenia
-         * - LogFilePath - ścieżka do pliku, w którym zapisywane bedą wszystkie zdarzenia (logi)
-         */
-
         string DEFAULCONFIGPATH = "defaultConfig.xml";
 
         public IPAddress cloudIP { get; set; }
@@ -53,17 +34,17 @@ namespace MPLS_ManagmentLayer
          */
         public ConfigurationClass()
         {
-            //tutaj wywołujemy metode ShowPathRequest oraz pobieramy FilePath metoda get publiczną z obiektu
             GetConfigPath();
-            XmlDocument config = OpenXMLFile(DEFAULCONFIGPATH);
-            PerformConfiguration(config);
 
+            XmlDocument config = OpenXMLFile(configFilePath);
+            PerformConfiguration(config);
         }
 
         public void GetConfigPath()
         {
-            Console.Write("Please type the path for config file: ");
+            Console.WriteLine("Please type the path for config file: ");
             configFilePath = Console.ReadLine();
+
             if (configFilePath == "")
             {
                 Console.WriteLine("Opening default config file");
@@ -91,8 +72,6 @@ namespace MPLS_ManagmentLayer
         {
             this.localIP = IPAddress.Parse(configFile.SelectSingleNode("ManagmentLayer/localIP").InnerText);
             this.localPort = int.Parse(configFile.SelectSingleNode("ManagmentLayer/localPort").InnerText);
-           
         }
-
     }
 }
