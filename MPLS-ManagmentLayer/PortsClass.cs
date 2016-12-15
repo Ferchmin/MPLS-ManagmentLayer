@@ -198,6 +198,7 @@ namespace MPLS_ManagmentLayer
 
         private void RestartRouterTimer(ManagementPacket packet)
         {
+            bool routerRestarted = false;
             foreach (LSRouter router in ConnectedRouters)
             {
                 if (router.IpAddress == packet.IpSource)
@@ -205,12 +206,14 @@ namespace MPLS_ManagmentLayer
                     router.keepAliveTimer.Stop();
                     router.keepAliveTimer.Start();
 
+                    routerRestarted = true;
                     LogMaker.MakeLog("Received keepAlive from: " + router.IpAddress);
 
-                }else
-                {
-                    LogMaker.MakeLog("Received keepAlive from unknown router");
                 }
+            }
+            if (routerRestarted)
+            {
+                LogMaker.MakeLog("Received keepAlive from unknown router");
             }
 
         }
