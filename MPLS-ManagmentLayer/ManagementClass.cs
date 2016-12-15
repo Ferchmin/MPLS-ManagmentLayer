@@ -81,13 +81,13 @@ namespace MPLS_ManagmentLayer
             {
 
                 Console.WriteLine("Set LabelIn: ");
-                int tableLine = Int32.Parse(Console.ReadLine());
+                int labelIn = Int32.Parse(Console.ReadLine());
 
                 Console.WriteLine("State the InterfaceIn: ");
                 int intIn = Int32.Parse(Console.ReadLine());
 
                 Console.WriteLine("State the labelOut: ");
-                int outPort = Int32.Parse(Console.ReadLine());
+                int labelOut = Int32.Parse(Console.ReadLine());
 
                 Console.WriteLine("State the InterfaceOut: ");
                 int intOut = Int32.Parse(Console.ReadLine());
@@ -97,7 +97,7 @@ namespace MPLS_ManagmentLayer
 
                 operation = operation.ToLower();
 
-                string packetMessage = "Add " + tableLine.ToString() + " " + intIn.ToString() + " " + outPort.ToString() + " " + intOut.ToString()+ " " + operation;
+                string packetMessage = "Add " + labelIn.ToString() + " " + intIn.ToString() + " " + labelOut.ToString() + " " + intOut.ToString()+ " " + operation;
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
@@ -115,9 +115,9 @@ namespace MPLS_ManagmentLayer
             }
         }
 
-        public void SendAutomatedAdd(IPEndPoint agentEndPoint, int tableLine, int intIn, int outPort, int intOut, string operation)
+        public void SendAutomatedAdd(IPEndPoint agentEndPoint, int labelIn, int intIn, int labelOut, int intOut, string operation)
         {
-            string packetMessage = "Add " + tableLine.ToString() + " " + intIn.ToString() + " " + outPort.ToString() + " " + intOut.ToString()+ " " + operation;
+            string packetMessage = "Add " + labelIn.ToString() + " " + intIn.ToString() + " " + labelOut.ToString() + " " + intOut.ToString()+ " " + operation;
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
@@ -130,9 +130,9 @@ namespace MPLS_ManagmentLayer
                 portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
         }
 
-        public void SendAutomatedRemove(IPEndPoint agentEndPoint,int tableLine, int intIn)
+        public void SendAutomatedRemove(IPEndPoint agentEndPoint,int labelIn, int intIn)
         {
-            string packetMessage = "Remove " + tableLine.ToString() + " " + intIn.ToString();
+            string packetMessage = "Remove " + labelIn.ToString() + " " + intIn.ToString();
 
             ManagementPacket commandPacket = new ManagementPacket();
             commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
@@ -149,7 +149,23 @@ namespace MPLS_ManagmentLayer
 
         public void FixBrokenLink()
         {
+            IPEndPoint LSR3 = new IPEndPoint(IPAddress.Parse("127.0.3.0"), 7030);
+            SendAutomatedRemove(LSR3,12,1);
+            SendAutomatedRemove(LSR3, 22, 1);
+            SendAutomatedRemove(LSR3, 56, 2);
+            SendAutomatedRemove(LSR3, 57, 2);
 
+            SendAutomatedAdd(LSR3, 12, 1, 1, 4, "push");
+            SendAutomatedAdd(LSR3, 56, 2, 1, 4, "push");
+
+            IPEndPoint LSR4 = new IPEndPoint(IPAddress.Parse("127.0.4.0"), 7040);
+            SendAutomatedRemove(LSR4, 1, 1);
+            SendAutomatedRemove(LSR4, 22, 1);
+            SendAutomatedRemove(LSR4, 57, 1);
+
+            SendAutomatedAdd(LSR4, 2, 2, 0, 0, "pop");
+            SendAutomatedAdd(LSR4, 12, 2, 44, 3, "swap");
+            SendAutomatedAdd(LSR4, 56, 2, 57, 4, "swap");
         }
 
         public IPEndPoint ChooseTargetRouter()
@@ -199,12 +215,12 @@ namespace MPLS_ManagmentLayer
             {
 
                 Console.WriteLine("Set LabelIn: ");
-                int tableLine = Int32.Parse(Console.ReadLine());
+                int labelIn = Int32.Parse(Console.ReadLine());
 
                 Console.WriteLine("State the InterfaceIn: ");
                 int intIn = Int32.Parse(Console.ReadLine());
 
-                string packetMessage = "Remove " + tableLine.ToString() + " " + intIn.ToString();
+                string packetMessage = "Remove " + labelIn.ToString() + " " + intIn.ToString();
 
                 ManagementPacket commandPacket = new ManagementPacket();
                 commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
