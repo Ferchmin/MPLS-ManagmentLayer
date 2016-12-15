@@ -44,7 +44,8 @@ namespace MPLS_ManagmentLayer
             string log;
 
             log = _logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
-            Console.WriteLine(log);
+            Console.WriteLine("\n"+log);
+            Console.WriteLine("Enter commands here: ");
 
         }
 

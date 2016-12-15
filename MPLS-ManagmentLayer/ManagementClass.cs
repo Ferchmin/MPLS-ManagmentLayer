@@ -110,6 +110,8 @@ namespace MPLS_ManagmentLayer
                 portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
 
                 LogMaker.MakeLog("Sent ADD command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeConsoleLog("Sent ADD command to " + agentEndPoint.Address.ToString());
+
             }
         }
 
@@ -215,6 +217,7 @@ namespace MPLS_ManagmentLayer
                 portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
 
                 LogMaker.MakeLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeConsoleLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
             }
         }
 
