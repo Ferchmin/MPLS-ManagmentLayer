@@ -128,6 +128,8 @@ namespace MPLS_ManagmentLayer
 
 
                 portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
+                LogMaker.MakeLog("Sent ADD command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeConsoleLog("Sent ADD command to " + agentEndPoint.Address.ToString());
         }
 
         public void SendAutomatedRemove(IPEndPoint agentEndPoint,int labelIn, int intIn)
@@ -145,11 +147,13 @@ namespace MPLS_ManagmentLayer
             portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
 
             LogMaker.MakeLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
+            LogMaker.MakeConsoleLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
         }
 
         public void FixBrokenLink()
         {
             IPEndPoint LSR3 = new IPEndPoint(IPAddress.Parse("127.0.3.0"), 7030);
+
             SendAutomatedRemove(LSR3,12,1);
             SendAutomatedRemove(LSR3, 22, 1);
             SendAutomatedRemove(LSR3, 56, 2);
@@ -333,8 +337,35 @@ namespace MPLS_ManagmentLayer
                     LogMaker.MakeLog("Received keepAlive from unknown router");
                 }
             }
+        }
 
+            public void SendGetTableCommand()
+        {
+            IPEndPoint agentEndPoint = ChooseTargetRouter();
+
+            if (agentEndPoint == null)
+            {
+                LogMaker.MakeLog("Failed to send GETTABLE command - wrong router selected");
+            }
+            else
+            {
+                string packetMessage = "GetTable";
+
+                ManagementPacket commandPacket = new ManagementPacket();
+                commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+                commandPacket.IpDestination = agentEndPoint.Address.ToString();
+                commandPacket.DataIdentifier = 2;
+                commandPacket.Data = packetMessage;
+                commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+
+
+                portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
+
+                LogMaker.MakeLog("Sent GETTABLE command to " + agentEndPoint.Address.ToString());
+                LogMaker.MakeConsoleLog("Sent GETTABLE command to " + agentEndPoint.Address.ToString());
+            }
         }
 
     }
-}
+
+    }

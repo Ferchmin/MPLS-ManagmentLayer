@@ -166,8 +166,22 @@ namespace MPLS_ManagmentLayer
 
         private void GetResponse(ManagementPacket packet)
         {
-            //Make a log
-            LogMaker.MakeLog("Received response from: "+packet.IpSource + " : "+packet.Data);
+            string[] table = packet.Data.Split('|');
+            if ((table[0] == "Accepted") || (table[0] == "Denied"))
+                LogMaker.MakeLog("Received response from: " + packet.IpSource + " : " + packet.Data);
+            else
+            {
+                LogMaker.MakeConsoleLog("Received table from: " + packet.IpSource);
+                LogMaker.MakeLog("Received table from: " + packet.IpSource);
+                foreach (var line in table)
+                {
+                    if (line != "")
+                    {
+                        string[] lineParts = line.Split('&');
+                        LogMaker.MakeConsoleLog("LabelIn: " + lineParts[0] + " InterfaceIn: " + lineParts[1] + " LabelOut: " + lineParts[2] + " InterfaceOut: " + lineParts[3] + " Operation: " + lineParts[4]);
+                    }
+                }
+            }
         }
 
         private void AddConectedRouter(ManagementPacket packet, IPEndPoint receivedIPEndPoint)

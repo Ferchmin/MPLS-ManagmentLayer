@@ -57,26 +57,27 @@ namespace MPLS_ManagmentLayer
         }
 
         /*
-        * Metoda odpowiedzialna za wyświetlanie dostepnych opcji dla użytkownika
-        * - związane z protokołem, jakiej komendy użyć aby coś zrobić
-        * (komendy moga byc zapisane tutaj, albo w klasie management, czyli zarzadcy)
-        * -w jakis sposób trzeba zapisac tutaj albo tam te wszystkie komendy możliwe dla uzytkownika
-        */
-        public void ShowHelp()
-        {
-            Console.Write("Availible commands: \n 1.Add \n 2.Remove \n 3.lsr list \n 4.help \n");
-        }
-
-        /*
         * Metoda odpowiedzialna za zczytywanie komend wpisanych przez uzytkownika.
         * - komenda w postaci obiektu typu string jest przesyłana do obiektu klasy management, która to klasa zajmuje sie jedynie przetwarzaniem danej komendy
         * - metoda zabezpiecza przed przyjęciem błednej komendy (trzeba jakoś weryfikować, w razie błędu napisać w konsoli, że błedna składnia)
         * 
         * - parametrem command jest tekst wpisany przez użytkownika do konsoli
         */
+        public void ShowHelp()
+        {
+            Console.Write("Availible commands: \n 1.Add \n 2.Remove \n 3.GetTable \n 4.lsr list \n 5.help \n");
+        }
+
+        /*
+        * Metoda odpowiedzialna za zczytywanie komend wpisanych przez uzytkownika.
+        * - komenda w postaci obiektu typu string jest przesyłana do obiektu klasy management, która to klasa zajmuje sie jedynie przetwarzaniem danej komendy
+        * - metoda zabezpiecza przed przyjęciem błednej komendy (trzeba jakoś weryfikować, w razie błędu napisać w konsoli, że błedna składnia)
+        *
+        * - parametrem command jest tekst wpisany przez użytkownika do konsoli
+        */
         public void GetCommand(string command)
         {
-            command =  command.ToUpper();
+            command = command.ToUpper();
             switch (command)
             {
                 case "ADD":
@@ -95,24 +96,26 @@ namespace MPLS_ManagmentLayer
                     Console.WriteLine("Executing REMOVE command");
                     managementClass.SendRemoveCommand();
                     break;
-                //case "SWAP":
-                //  Console.WriteLine("Executing swap command");
-                //  managementClass.AnalyseCommand(command);
-                //  break;
+                case "3":
+                    managementClass.SendGetTableCommand();
+                    break;
                 case "LSR LIST":
                     ShowClientList();
                     break;
                 case "LIST":
                     ShowClientList();
                     break;
-                case "3":
+                case "4":
                     ShowClientList();
                     break;
                 case "HELP":
                     ShowHelp();
                     break;
-                case "4":
+                case "5":
                     ShowHelp();
+                    break;
+                case "6":
+                    managementClass.FixBrokenLink();
                     break;
                 default:
                     Console.WriteLine("Invalid command, try again");
@@ -121,7 +124,7 @@ namespace MPLS_ManagmentLayer
             }
         }
 
-        
+
 
         /* 
          * Metoda wyswietlajaca liste aktualnie podlaczonych klientow
