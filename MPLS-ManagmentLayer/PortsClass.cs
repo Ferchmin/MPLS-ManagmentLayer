@@ -211,7 +211,7 @@ namespace MPLS_ManagmentLayer
 
                 }
             }
-            if (routerRestarted)
+            if (!routerRestarted)
             {
                 LogMaker.MakeLog("Received keepAlive from unknown router");
             }
