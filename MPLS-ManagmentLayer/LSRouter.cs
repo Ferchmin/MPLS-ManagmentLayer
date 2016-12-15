@@ -52,7 +52,8 @@ namespace MPLS_ManagmentLayer
 
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            LogMaker.MakeLog("Router deactivated - keepAlive timeout");
+            LogMaker.MakeLog("Router: " + ipAdress + " deactivated - keepAlive timeout");
+            LogMaker.MakeConsoleLog("Router: " + ipAdress + " deactivated - keepAlive timeout");
             isActive = false;
             keepAliveTimer.Stop();
             keepAliveTimer.Close();

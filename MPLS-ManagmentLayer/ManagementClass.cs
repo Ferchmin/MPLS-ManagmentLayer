@@ -48,7 +48,7 @@ namespace MPLS_ManagmentLayer
         {
             configurationBase = new ConfigurationClass();
             portsCommunication = new PortsClass(configurationBase);
-            portsCommunication.packetHandlingDelegate = this;
+            //portsCommunication.packetHandlingDelegate = this;
             logMaker = new LogMaker();
 
             LogMaker.MakeLog("Managment agent is online");
@@ -113,6 +113,43 @@ namespace MPLS_ManagmentLayer
             }
         }
 
+        public void SendAutomatedAdd(IPEndPoint agentEndPoint, int tableLine, int intIn, int outPort, int intOut, string operation)
+        {
+            string packetMessage = "Add " + tableLine.ToString() + " " + intIn.ToString() + " " + outPort.ToString() + " " + intOut.ToString()+ " " + operation;
+
+                ManagementPacket commandPacket = new ManagementPacket();
+                commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+                commandPacket.IpDestination = agentEndPoint.Address.ToString();
+                commandPacket.DataIdentifier = 2;
+                commandPacket.Data = packetMessage;
+                commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+
+
+                portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
+        }
+
+        public void SendAutomatedRemove(IPEndPoint agentEndPoint,int tableLine, int intIn)
+        {
+            string packetMessage = "Remove " + tableLine.ToString() + " " + intIn.ToString();
+
+            ManagementPacket commandPacket = new ManagementPacket();
+            commandPacket.IpSource = portsCommunication.MyIPAddress.ToString();
+            commandPacket.IpDestination = agentEndPoint.Address.ToString();
+            commandPacket.DataIdentifier = 2;
+            commandPacket.Data = packetMessage;
+            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(packetMessage).Length);
+
+
+            portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
+
+            LogMaker.MakeLog("Sent REMOVE command to " + agentEndPoint.Address.ToString());
+        }
+
+        public void FixBrokenLink()
+        {
+
+        }
+
         public IPEndPoint ChooseTargetRouter()
         {
             int idRange = ShowClientList();
@@ -159,7 +196,7 @@ namespace MPLS_ManagmentLayer
             else
             {
 
-                          Console.WriteLine("Set LabelIn: ");
+                Console.WriteLine("Set LabelIn: ");
                 int tableLine = Int32.Parse(Console.ReadLine());
 
                 Console.WriteLine("State the InterfaceIn: ");

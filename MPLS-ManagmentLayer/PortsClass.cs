@@ -44,7 +44,7 @@ namespace MPLS_ManagmentLayer
             set { myIpAddress = value; }
         }
 
-        public PacketHandler packetHandlingDelegate;
+        //public PacketHandler packetHandlingDelegate;
 
 
         /*
@@ -149,15 +149,15 @@ namespace MPLS_ManagmentLayer
             switch (receivedPacket.DataIdentifier)
             {
                 case 0:
-                    packetHandlingDelegate.AddConectedRouter(receivedPacket, receivedIPEndPoint);
+                    AddConectedRouter(receivedPacket, receivedIPEndPoint);
                     break;
                 case 1:
-                    packetHandlingDelegate.RestartRouterTimer(receivedPacket);
+                    RestartRouterTimer(receivedPacket);
                     break;
                 case 2:
                     break;
                 case 3:
-                    packetHandlingDelegate.GetResponse(receivedPacket);
+                    GetResponse(receivedPacket);
                     break;
                 default:
                     break;

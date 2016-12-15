@@ -75,11 +75,15 @@ namespace MPLS_ManagmentLayer
             {
                 string last = File.ReadLines(_fileLogPath).Last();
                 string[] tmp = last.Split('|');
-                _logID = Int32.Parse(tmp[0]);
+
+                string tmp2 = tmp[0].Substring(1);
+
+                _logID = Int32.Parse(tmp2);
                 _logID++;
             }
             else
                 _logID = 1;
         }
+
     }
 }
