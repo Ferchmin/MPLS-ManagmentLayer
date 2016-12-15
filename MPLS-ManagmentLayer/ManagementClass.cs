@@ -221,6 +221,16 @@ namespace MPLS_ManagmentLayer
         public int ShowClientList()
         {
 
+            for (int i = 0; i < portsCommunication.ConnectedRouters.Count; i++)
+            {
+                if (!portsCommunication.ConnectedRouters[i].IsActive)
+                {
+                    portsCommunication.ConnectedRouters.RemoveAt(i);
+                }
+            }
+
+
+
             if (portsCommunication.ConnectedRouters.Count == 0)
             {
                 Console.WriteLine("No clients connected");
@@ -228,15 +238,13 @@ namespace MPLS_ManagmentLayer
             }
             else
             {
-                Console.WriteLine("Number of availible clients: " + portsCommunication.ConnectedRouters.Count);
+                //Console.WriteLine("Number of availible clients: " + portsCommunication.ConnectedRouters.Count);
+                Console.WriteLine("Availible routers: ");
                 int i = 0;
                 foreach (LSRouter client in portsCommunication.ConnectedRouters)
                 {
-                    if (client.IsActive)
-                    {
-                        Console.WriteLine(portsCommunication.ConnectedRouters.IndexOf(client) + ". " + "IP: " + client.IpAddress);
-                        i++;
-                    }
+                    Console.WriteLine(portsCommunication.ConnectedRouters.IndexOf(client) + ". " + "IP: " + client.IpAddress);
+                    i++;
                 }
                 return i;
             }

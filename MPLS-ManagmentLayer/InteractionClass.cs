@@ -128,26 +128,29 @@ namespace MPLS_ManagmentLayer
          */
         public void ShowClientList()
         {
-
-            if (managementClass.portsCommunication.ConnectedRouters.Count == 0)
-            {
-                Console.WriteLine("No clients connected");
-            }
-            else
-            {
-                Console.WriteLine("Number of availible clients: " + managementClass.portsCommunication.ConnectedRouters.Count);
-                int i = 0;
-                foreach (LSRouter client in managementClass.portsCommunication.ConnectedRouters)
+            for (int i= 0;i < managementClass.portsCommunication.ConnectedRouters.Count; i++)
                 {
-                    if (client.IsActive)
+                    if (!managementClass.portsCommunication.ConnectedRouters[i].IsActive)
                     {
-                        i++;
-                        Console.WriteLine(i + ". " + "IP: " + client.IpAddress);
+                        managementClass.portsCommunication.ConnectedRouters.RemoveAt(i);
                     }
                 }
-            }
 
-        }
+            if(managementClass.portsCommunication.ConnectedRouters.Count == 0)
+                {
+                    Console.WriteLine("No clients connected");
+                }else
+                {
+                 foreach (LSRouter client in managementClass.portsCommunication.ConnectedRouters)
+                 {
+                    Console.WriteLine(managementClass.portsCommunication.ConnectedRouters.IndexOf(client) + ". " + "IP: " + client.IpAddress);
+                 }
+            }
+               
+         }
+            
+
+   
 
         /*
         * Metoda odpowiedzialna za wyświetlanie:
