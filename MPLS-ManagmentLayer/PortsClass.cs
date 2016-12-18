@@ -129,7 +129,7 @@ namespace MPLS_ManagmentLayer
             var endPoint = res.AsyncState as IPEndPoint; 
 
             //tworzmy log zdarzenia
-            LogMaker.MakeLog("INFO - Packet sent to "+endPoint.Address + "port: "+endPoint.Port);
+            //LogMaker.MakeLog("INFO - Packet sent to "+endPoint.Address + "port: "+endPoint.Port);
         }
 
         /*
@@ -145,10 +145,10 @@ namespace MPLS_ManagmentLayer
                     AddConectedRouter(receivedPacket, receivedIPEndPoint);
                     break;
                 case 1:
-                    RestartRouterTimer(receivedPacket);
+                    RestartRouterTimer(receivedPacket, receivedIPEndPoint);
                     break;
                 case 2:
-                    //command
+                    //commands to management layer do nothing
                     break;
                 case 3:
                     GetResponse(receivedPacket);
@@ -208,7 +208,7 @@ namespace MPLS_ManagmentLayer
 
             if (flag)
             {
-                RestartRouterTimer(packet);
+                RestartRouterTimer(packet, receivedIPEndPoint);
             }
             else
             {
@@ -219,7 +219,7 @@ namespace MPLS_ManagmentLayer
 
         }
 
-        private void RestartRouterTimer(ManagementPacket packet)
+        private void RestartRouterTimer(ManagementPacket packet, IPEndPoint receivedIPEndPoint)
         {
             bool routerRestarted = false;
             foreach (LSRouter router in ConnectedRouters)
@@ -231,12 +231,14 @@ namespace MPLS_ManagmentLayer
 
                     routerRestarted = true;
                     LogMaker.MakeLog("INFO - Received keepAlive from: " + router.IpAddress);
-
                 }
             }
             if (!routerRestarted)
             {
-                LogMaker.MakeLog("ERROR - Received keepAlive from unknown router");
+                LSRouter lsRouter = new LSRouter(packet.IpSource, receivedIPEndPoint.Port);
+                ConnectedRouters.Add(lsRouter);
+                LogMaker.MakeLog("INFO - Received keepAlive from new router - router added");
+                LogMaker.MakeConsoleLog("INFO - Received keepAlive from new router - router added");
             }
 
         }

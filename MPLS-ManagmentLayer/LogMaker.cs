@@ -55,6 +55,7 @@ namespace MPLS_ManagmentLayer
                 _writeLock.ExitWriteLock();
             }
         }
+
         private void InitializeLogLastIdNumber()
         {
             if (File.Exists(_fileLogPath))
