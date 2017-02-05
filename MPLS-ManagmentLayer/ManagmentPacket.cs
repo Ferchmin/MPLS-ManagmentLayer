@@ -39,6 +39,8 @@ namespace MPLS_ManagmentLayer
         private string _ip_destination;
         private ushort _message_length;
         private string _data;
+        public string destinationName { get; set; }
+        public int label { get; set; }
         #endregion
 
 

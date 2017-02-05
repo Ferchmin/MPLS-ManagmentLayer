@@ -1,4 +1,8 @@
-﻿using System;
+﻿using ControlPlane;
+using System;
+using System.Net;
+using System.Text;
+
 
 /*
  * Klasa odpowiedzialna za interakcje z użytkownikiem 
@@ -10,6 +14,10 @@ namespace MPLS_ManagmentLayer
     class InteractionClass
     {
         ManagementClass managementClass;
+        private string configurationFolderPath = "config/CPCC1_config.xml";
+
+        CPCC cpcc;
+        PC pc;
 
         public string filePath { get; private set; }
         public string InputString
@@ -23,6 +31,9 @@ namespace MPLS_ManagmentLayer
         public InteractionClass()
         {
             managementClass = new ManagementClass();
+            cpcc = new CPCC(configurationFolderPath);
+            pc = new PC("config/PC1_config.xml", cpcc);
+            cpcc.LocalPC = pc;
 
             ShowHelp();   
         }
@@ -37,7 +48,7 @@ namespace MPLS_ManagmentLayer
         */
         public void ShowHelp()
         {
-            Console.Write("\nAvailible commands: \n 1.Add \n 2.Remove \n 3.GetTable \n 4.LSR list \n 5.Help \n");
+            Console.Write("\nAvailible commands: \n 1.Add \n 2.Remove \n 3.GetTable \n 4.LSR list \n 5.Help \n 8.Arrange a connection \n 9.Arrange interdomain connection");
         }
 
         /*
@@ -98,11 +109,46 @@ namespace MPLS_ManagmentLayer
                 case "7":
                     managementClass.FixedBrokenLSR();
                     break;
-
+                case "8":
+                    CreateSoftPermanentConnection();
+                    break;
+                case "9":
+                    CreateSoftPermanentInterdomainConnection();
+                    break;
                 default:
                     Console.WriteLine("ERROR - Invalid command, try again.");
                     break;
             }
+        }
+
+        public void CreateSoftPermanentInterdomainConnection()
+        {
+            cpcc.CallRequest(11, "Gdansk Department", "Warsaw Department", 500);
+            LogMaker.MakeConsoleLog("Sent callRequest from Gdansk to Warsaw");
+            LogMaker.MakeLog("Sent callRequest from Gdansk to Warsaw");
+        }
+
+        public void CreateSoftPermanentConnection()
+        {
+            cpcc.CallRequest(10, "Gdansk Department", "Cracow Department", 500);
+            LogMaker.MakeConsoleLog("Sent a callRequest from Gdansk to Cracow");
+            LogMaker.MakeLog("Sent a callRequest from Gdansk to Cracow");
+        }
+
+        public void SendLabelNumber(int labelNumber, string destinationId, string destinationIp)
+        {
+
+            IPEndPoint agentEndPoint = new IPEndPoint(IPAddress.Parse(destinationIp), 6666);
+
+            ManagementPacket commandPacket = new ManagementPacket();
+            commandPacket.IpSource = managementClass.portsCommunication.MyIPAddress.ToString();
+            commandPacket.IpDestination = destinationIp;
+            commandPacket.DataIdentifier = 5;
+            commandPacket.Data = destinationId + "," + labelNumber.ToString();
+            commandPacket.MessageLength = (ushort)(Encoding.ASCII.GetBytes(commandPacket.Data).Length);
+
+
+            managementClass.portsCommunication.SendMyPacket(commandPacket.CreatePacket(), agentEndPoint);
         }
 
         /* 

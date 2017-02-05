@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DTO.ControlPlane">
+      <HintPath>..\..\..\MPLS-SignalingNode\DTO.ControlPlane\bin\Debug\DTO.ControlPlane.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,15 +47,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationClass.cs" />
+    <Compile Include="CPCC\CPCC.cs" />
+    <Compile Include="CPCC\CPCC_LoadingXmlFile.cs" />
+    <Compile Include="CPCC\CPCC_XmlSchame.cs" />
     <Compile Include="LogMaker.cs" />
     <Compile Include="InteractionClass.cs" />
     <Compile Include="LSRouter.cs" />
     <Compile Include="ManagementClass.cs" />
     <Compile Include="ManagmentPacket.cs" />
     <Compile Include="PacketStructure.cs" />
+    <Compile Include="PC\PC.cs" />
+    <Compile Include="PC\PC_LoadingXmlFile.cs" />
+    <Compile Include="PC\PC_XmlSchame.cs" />
     <Compile Include="PortsClass.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SignallingNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
